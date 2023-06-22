@@ -31,7 +31,7 @@
                 <ColumnDefinition Width="3*"/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-            <Label x:Name="serverStatus" Content="?????" Grid.Column="0" HorizontalContentAlignment="Center"/>
+            <Label x:Name="serverStatus" Content="?????" Grid.Column="0" HorizontalContentAlignment="Center" Foreground="#FFD8D8D8" />
             <Button Content="Disconnect" Width="75" Click="DisconnectServer_Click" Grid.Column="1"/>
         </Grid>
         <Grid x:Name="clientMenu" Height="30" VerticalAlignment="Center" Grid.Row="0" Visibility="Hidden">
@@ -39,19 +39,19 @@
                 <ColumnDefinition Width="3*"/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-            <Label x:Name="clentStatus" Content="?????" Grid.Column="0" HorizontalContentAlignment="Center"/>
+            <Label x:Name="clentStatus" Content="?????" Grid.Column="0" HorizontalContentAlignment="Center" Foreground="#FFD8D8D8"/>
             <Button Content="Disconnect" Width="75" Click="DisconnectClient_Click" Grid.Column="1"/>
         </Grid>
         
         <Canvas x:Name="canvas" Height="282" Width="400" Background="#FF1E1E1E" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center">
-            <Line X1="202" Y1="0" X2="200" Y2="282" Stroke="#FFD8D8D8" StrokeThickness="4" StrokeDashArray="5 3" StrokeDashCap="Round"/>
+            <Line X1="202" Y1="0" X2="200" Y2="282" Stroke="#FFD8D8D8" StrokeThickness="4" StrokeDashArray="2 3" StrokeDashCap="Round"/>
             <Rectangle x:Name="rectLocal" Fill="#FFA0FF50" Height="60" Stroke="Black" Width="10" Canvas.Right="0" Visibility="Hidden"/>
             <Rectangle x:Name="rectOpponent" Fill="#FFFF5050" Height="60" Stroke="Black" Width="10" Canvas.Left="0" Visibility="Hidden"/>
             <Ellipse x:Name="EllipseBall" Fill="#FF36A5D8" Height="15" Canvas.Left="180" Stroke="Black" Canvas.Top="122" Width="15" Visibility="Hidden"/>
         </Canvas>
         <StackPanel x:Name="score"  Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="1">
-            <Label x:Name="leftSideScore" Content="0" FontSize="60" Margin="0,0,130,0"></Label>
-            <Label x:Name="rightSideScore" Content="0" FontSize="60"></Label>
+            <Label x:Name="leftSideScore" Content="0" FontSize="60" Margin="0,0,130,0" FontWeight="Bold" Foreground="#FFD8D8D8" FontFamily="/Pong;component/Resources/#Teko Medium"></Label>
+            <Label x:Name="rightSideScore" Content="0" FontSize="60" FontWeight="Bold" Foreground="#FFD8D8D8" FontFamily="/Pong;component/Resources/#Teko Medium"/>
         </StackPanel>
     </Grid>
 </Window>

@@ -89,7 +89,7 @@ namespace Pong
             }
             isConnect = false;
             isActive = false;
-            tcpSocet.Close();
+            tcpSocet?.Close();
         }
     }
 }

@@ -12,7 +12,13 @@ namespace Pong
         public Dictionary<char, int> dataDictionary = new Dictionary<char, int>();
 
         // Стоит вынести отдельно
-        public char[] keys = {(char)112, (char)113, (char)114};
+        public char[] keys = {
+            (char)112, //
+            (char)113, //
+            (char)114, //
+            (char)115, //
+            (char)116  //
+        };
 
         StringBuilder dataBuffer = new StringBuilder();
 
@@ -45,7 +51,14 @@ namespace Pong
                 {
                     if (i != 0)
                     {
-                        dataDictionary.Add(key, int.Parse(partMessage.ToString()));
+                        if (dataDictionary.ContainsKey(key))
+                        {
+                            dataDictionary[key] = int.Parse(partMessage.ToString());
+                        }
+                        else
+                        {
+                            dataDictionary.Add(key, int.Parse(partMessage.ToString()));
+                        }
                         partMessage.Clear();
                     }
                     key = message[i];
@@ -53,7 +66,14 @@ namespace Pong
                 else if (i == message.Length - 1) 
                 {
                     partMessage.Append(message[i]);
-                    dataDictionary.Add(key, int.Parse(partMessage.ToString()));
+                    if (dataDictionary.ContainsKey(key))
+                    {
+                        dataDictionary[key] = int.Parse(partMessage.ToString());
+                    }
+                    else
+                    {
+                        dataDictionary.Add(key, int.Parse(partMessage.ToString()));
+                    }
                 }
                 else
                 {

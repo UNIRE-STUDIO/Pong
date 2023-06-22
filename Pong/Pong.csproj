@@ -119,6 +119,11 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+    <EmbeddedResource Include="Resources\Teko-Bold.ttf" />
+    <EmbeddedResource Include="Resources\Teko-Light.ttf" />
+    <EmbeddedResource Include="Resources\Teko-Medium.ttf" />
+    <EmbeddedResource Include="Resources\Teko-Regular.ttf" />
+    <EmbeddedResource Include="Resources\Teko-SemiBold.ttf" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
