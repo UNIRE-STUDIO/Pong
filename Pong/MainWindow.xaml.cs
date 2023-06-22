@@ -243,7 +243,7 @@ namespace Pong
 
                     // Касаемся ракеток
                     if (ball.position.x < rectLocal.Width && 
-                        ball.position.y > paddleOpponent.position.y && 
+                        ball.position.y > paddleOpponent.position.y - EllipseBall.Width && 
                         ball.position.y < paddleOpponent.position.y + rectOpponent.Height)
                     {
                         ball.Direction.x = -ball.Direction.x;
@@ -263,7 +263,7 @@ namespace Pong
 
                     if (ball.position.x <= 0)
                     {
-                        leftSideScore.Content = int.Parse(leftSideScore.Content.ToString()) + 1;
+                        rightSideScore.Content = int.Parse(rightSideScore.Content.ToString()) + 1;
                         isPause = true;
                         await Task.Delay(1000);
                         Random rand = new Random();
@@ -271,7 +271,7 @@ namespace Pong
                     }
                     else if (ball.position.x > canvas.Width)
                     {
-                        rightSideScore.Content = int.Parse(rightSideScore.Content.ToString()) + 1;
+                        leftSideScore.Content = int.Parse(leftSideScore.Content.ToString()) + 1;
                         isPause = true;
                         await Task.Delay(1000);
                         Random rand = new Random();
