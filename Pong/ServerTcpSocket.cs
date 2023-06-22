@@ -9,14 +9,15 @@ using System.Net;
 using System.Windows;
 using System.Windows.Controls;
 using System.Diagnostics;
+using System.Threading;
 
 namespace Pong
 {
     class ServerTcpSocket : UnTcpSocket
     {
-
-
         public EventHandler eventErrorStart;
+        
+
         public async void Start(int port)
         {
             try
@@ -27,7 +28,27 @@ namespace Pong
                 tcpSocet.Listen(1);
                 isActive = true;
                 eventStart?.Invoke(this, null);
-                socketListner = await Task.Run(() => tcpSocet.Accept());
+                socketListner = await Task.Run(() => {
+                    try
+                    {
+                        return tcpSocet.Accept();
+                    }
+                    catch (SocketException ex) when (ex.ErrorCode == 10004)
+                    {
+                        return null;
+                    }
+                    catch (Exception)
+                    {
+                        isActive = false;
+                        isConnect = false;
+                        eventErrorStart?.Invoke(this, null);
+                        return null;
+                    }
+                });
+                if (socketListner == null)
+                {
+                    return;
+                }
                 isConnect = true;
                 eventConnect?.Invoke(this, null);
             }

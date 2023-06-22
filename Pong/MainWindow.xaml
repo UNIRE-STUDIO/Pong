@@ -43,9 +43,15 @@
             <Label x:Name="clentStatus" Content="?????" Grid.Column="0" HorizontalContentAlignment="Center"/>
             <Button Content="Disconnect" Width="75" Click="DisconnectClient_Click" Grid.Column="1"/>
         </Grid>
+        
         <Canvas x:Name="canvas" Height="282" Width="400" Background="#FFDEDEDE" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center">
             <Rectangle x:Name="rectLocal" Fill="#FFA0FF50" Height="60" Stroke="Black" Width="10" Canvas.Right="0" Visibility="Hidden"/>
             <Rectangle x:Name="rectOpponent" Fill="#FFFF5050" Height="60" Stroke="Black" Width="10" Canvas.Left="0" Visibility="Hidden"/>
+            <Ellipse x:Name="EllipseBall" Fill="#FF36A5D8" Height="20" Canvas.Left="180" Stroke="Black" Canvas.Top="122" Width="20" Visibility="Hidden"/>
         </Canvas>
+        <StackPanel x:Name="score"  Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="1">
+            <Label x:Name="leftSideScore" Content="0" FontSize="60" Margin="0,0,130,0"></Label>
+            <Label x:Name="rightSideScore" Content="0" FontSize="60"></Label>
+        </StackPanel>
     </Grid>
 </Window>

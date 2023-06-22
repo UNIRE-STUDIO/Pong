@@ -5,46 +5,23 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
+using System.Windows;
 
 namespace Pong
 {
-    class Paddle
+    class Paddle : GameObject
     {
-        public Vector2 position = new Vector2(0,0);
-        public Vector2 size = new Vector2(10,60);
+        public Paddle(Vector2 pos, Shape shape, Canvas cnvs) : base(pos, shape, cnvs) { }
 
-        public int Direction { get; set; } = 0;
+        public Vector2 Direction { get; set; } = new Vector2(0, 0);
         public int Speed { get; set; } = 3;
 
-        private Rectangle rectangle;
-        private Canvas canvas;
-
-        public Paddle() { }
-        public Paddle(Vector2 pos, Rectangle rect, Canvas cnvs)
+        public void Calculation()
         {
-            position = pos;
-            rectangle = rect;
-            canvas = cnvs;
-            Canvas.SetLeft(rectangle, position.x);
-        }
-
-        public void UpdateDirection()
-        {
-            position.y += Direction * Speed;
-            UpdatePos();
-        }
-
-        public void UpdatePos()
-        {
+            position.x = position.x + Direction.x * Speed;
+            position.y = position.y + Direction.y * Speed;
             if (position.y < 0) position.y = 0;
-            if (position.y > canvas.Height - size.y) position.y = (int)canvas.Height - size.y;
-            Canvas.SetTop(rectangle, position.y);
-        }
-
-        // Пока-что используем только Y
-        public void SetPos(Vector2 newPos)
-        {
-            position.y = newPos.y;
+            if (position.y > canvas.Height - renderShape.Height) position.y = (int)canvas.Height - (int)renderShape.Height;
         }
     }
 }

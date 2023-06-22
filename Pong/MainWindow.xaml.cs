@@ -26,9 +26,13 @@ namespace Pong
     {
         Paddle paddleLocal;
         Paddle paddleOpponent;
+        Ball ball;
 
         ServerTcpSocket serverSocket;
         ClientTcpSocket clientSocket;
+
+        NetworkData networkSendData = new NetworkData();
+        NetworkData networkReceiveData = new NetworkData();
 
         public bool Running { get; private set; }
 
@@ -88,7 +92,7 @@ namespace Pong
             serverSocket.eventErrorSend += (hendler, ee) => {
                 MessageBox.Show("Сервер: Не удалось отправить данные");
             };
-            
+
             serverSocket.Start(port);
 
             createMenu.Visibility = Visibility.Hidden;
@@ -138,9 +142,19 @@ namespace Pong
         {
             while (socket.isConnect)
             {
-                string data = socket.Receive();
-                if (!int.TryParse(data, out int y)) return;
-                paddleOpponent.SetPos(new Vector2(0, y));
+                networkReceiveData.dataDictionary.Clear();
+                networkReceiveData.Unpacking(socket.Receive());
+                if (networkReceiveData.dataDictionary.TryGetValue((char)112, out int y))
+                {
+                    paddleOpponent.position = new Vector2(paddleOpponent.position.x, y);
+                }
+                
+                if (clientSocket != null)
+                { 
+                    if (networkReceiveData.dataDictionary.TryGetValue((char)113, out int posX) &&
+                        networkReceiveData.dataDictionary.TryGetValue((char)114, out int posY))
+                        ball.position = new Vector2(posX, posY);
+                }
                 await Task.Delay(30);
             }
         }
@@ -149,11 +163,25 @@ namespace Pong
         {
             while (socket.isConnect)
             {
-                string message = paddleLocal.position.y.ToString();
-                socket.Send(message);
+                networkSendData.dataDictionary.Clear();
+                networkSendData.dataDictionary.Add('p', paddleLocal.position.y);
+                if (serverSocket != null)
+                {
+                    networkSendData.dataDictionary.Add((char)113, ball.position.x);
+                    networkSendData.dataDictionary.Add((char)114, ball.position.y);
+                }
+                socket.Send(networkSendData.ToString());
 
                 await Task.Delay(70);
             }
+        }
+
+        private void GameExit()
+        {
+            isActiveGameLoop = false;
+            rectLocal.Visibility = Visibility.Hidden;
+            rectOpponent.Visibility = Visibility.Hidden;
+            EllipseBall.Visibility = Visibility.Hidden;
         }
 
         // GAME LOOOOOOOOOOOP
@@ -161,28 +189,31 @@ namespace Pong
         {
             rectLocal.Visibility = Visibility.Visible;
             rectOpponent.Visibility = Visibility.Visible;
+            EllipseBall.Visibility = Visibility.Visible;
             int xPos = 0;
             if (serverSocket != null) 
             {
                 xPos = (int)canvas.Width - (int)rectLocal.Width;
                 paddleLocal = new Paddle(new Vector2(xPos, 0), rectLocal, canvas);
                 paddleOpponent = new Paddle(new Vector2(0, 0), rectOpponent, canvas);
+                ball = new Ball(new Vector2((int)canvas.Width/2, 50), EllipseBall, canvas);
             }
             else
             {
                 xPos = (int)canvas.Width - (int)rectOpponent.Width;
                 paddleLocal = new Paddle(new Vector2(0, 0), rectLocal, canvas);
                 paddleOpponent = new Paddle(new Vector2(xPos, 0), rectOpponent, canvas);
+                ball = new Ball(new Vector2((int)canvas.Width / 2, 50), EllipseBall, canvas);
             }
+            isActiveGameLoop = true;
             GamerLoop();
         }
 
+        bool isPause = true;
+        bool isActiveGameLoop = false;
         private async void GamerLoop()
         {
-            // Set gameloop state
-            Running = true;
-
-            while (Running)
+            while (isActiveGameLoop)
             {
                 int direction = 0;
                 if ((Keyboard.GetKeyStates(Key.Down) & KeyStates.Down) > 0)
@@ -193,9 +224,59 @@ namespace Pong
                 {
                     direction = -1;
                 }
-                paddleLocal.Direction = direction;
-                paddleLocal.UpdateDirection();
+                else if ((Keyboard.GetKeyStates(Key.Space) & KeyStates.Down) > 0)
+                {
+                    isPause = !isPause;
+                }
+                paddleLocal.Direction = new Vector2(paddleLocal.Direction.x, direction);
+                paddleLocal.Calculation();
+                paddleLocal.UpdatePos();
                 paddleOpponent.UpdatePos();
+
+                // Поменять на BOOL IsServer
+                if (serverSocket != null && !isPause)
+                {
+                    ball.position.x = ball.position.x + ball.Direction.x * ball.Speed;
+                    ball.position.y = ball.position.y + ball.Direction.y * ball.Speed;
+
+                    // Касаемся ракеток
+                    if (ball.position.x < rectLocal.Width && 
+                        ball.position.y > paddleOpponent.position.y && 
+                        ball.position.y < paddleOpponent.position.y + rectOpponent.Height)
+                    {
+                        ball.Direction.x = -ball.Direction.x;
+                    }
+                    else if (ball.position.x > canvas.Width - rectLocal.Width - EllipseBall.Width &&
+                             ball.position.y > paddleLocal.position.y - EllipseBall.Width &&
+                             ball.position.y < paddleLocal.position.y + rectLocal.Height)
+                    {
+                        ball.Direction.x = -ball.Direction.x;
+                    }
+
+                    if (ball.position.y >= canvas.Height-EllipseBall.Width || 
+                        ball.position.y <= 0)
+                    {
+                        ball.Direction.y = -ball.Direction.y;
+                    }
+
+                    if (ball.position.x <= 0)
+                    {
+                        leftSideScore.Content = int.Parse(leftSideScore.Content.ToString()) + 1;
+                        isPause = true;
+                        await Task.Delay(1000);
+                        Random rand = new Random();
+                        ball.position = new Vector2((int)canvas.Width/2, rand.Next(0, (int)(canvas.Height-EllipseBall.Height)));
+                    }
+                    else if (ball.position.x > canvas.Width)
+                    {
+                        rightSideScore.Content = int.Parse(rightSideScore.Content.ToString()) + 1;
+                        isPause = true;
+                        await Task.Delay(1000);
+                        Random rand = new Random();
+                        ball.position = new Vector2((int)canvas.Width / 2, rand.Next(0, (int)(canvas.Height - EllipseBall.Height)));
+                    }
+                }
+                ball.UpdatePos();
                 await Task.Delay(16);
             }
         }
@@ -210,9 +291,10 @@ namespace Pong
 
         private void DisconnectServer_Click(object sender, RoutedEventArgs e)
         {
+            GameExit();
             serverMenu.Visibility = Visibility.Hidden;
             serverSocket.Disconnect();
-            serverMenu.Visibility = Visibility.Visible;
+            createMenu.Visibility = Visibility.Visible;
         }
     }
 }

@@ -9,6 +9,7 @@ using System.Net;
 using System.Windows;
 using System.Windows.Controls;
 using System.Diagnostics;
+using System.Threading;
 
 namespace Pong
 {
@@ -26,7 +27,15 @@ namespace Pong
         public EventHandler eventErrorSend;
         public EventHandler eventErrorReceive;
 
-        StringBuilder data = new StringBuilder();
+        public int sendingDelay = 70;
+        public int receivingDelay = 30;
+
+        StringBuilder receiveData = new StringBuilder();
+        StringBuilder sendData = new StringBuilder();
+
+        NetworkData networkSendData = new NetworkData();
+        protected CancellationTokenSource cts = new CancellationTokenSource();
+
 
         public virtual string Receive()
         {
@@ -36,16 +45,15 @@ namespace Pong
             {
                 byte[] buffer = new byte[1];
                 int countBytes = 0;
-                data.Clear();
-                int available = socketListner.Available;
+                receiveData.Clear();
                 do
                 {
                     countBytes = socketListner.Receive(buffer);
-                    data.Append(Encoding.UTF8.GetString(buffer, 0, countBytes));
+                    receiveData.Append(Encoding.UTF8.GetString(buffer, 0, countBytes));
                     Trace.WriteLine(Encoding.UTF8.GetString(buffer, 0, countBytes));
                 }
                 while (socketListner.Available > 0);
-                return data.ToString();
+                return receiveData.ToString();
             }
             catch (Exception)
             {
@@ -57,8 +65,9 @@ namespace Pong
             }
         }
 
-        public virtual void Send(string message)
+        public virtual async void Send(string message)
         {
+            //while (isActive && isConnect)
             if (socketListner == null) return;
             try
             {
@@ -75,10 +84,12 @@ namespace Pong
 
         public void Disconnect()
         {
+            if (isConnect)
+            {
+                socketListner.Shutdown(SocketShutdown.Both);
+            }
             isConnect = false;
             isActive = false;
-            socketListner?.Shutdown(SocketShutdown.Both);
-            socketListner?.Close();
             tcpSocet.Close();
         }
     }
