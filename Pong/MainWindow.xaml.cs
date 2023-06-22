@@ -35,8 +35,6 @@ namespace Pong
         NetworkData networkSendData = new NetworkData();
         NetworkData networkReceiveData = new NetworkData();
 
-        public bool Running { get; private set; }
-
         public MainWindow()
         {
             InitializeComponent();
@@ -196,15 +194,15 @@ namespace Pong
             if (serverSocket != null) 
             {
                 xPos = (int)canvas.Width - (int)rectLocal.Width;
-                paddleLocal = new Paddle(new Vector2(xPos, 0), rectLocal, canvas);
-                paddleOpponent = new Paddle(new Vector2(0, 0), rectOpponent, canvas);
+                paddleLocal = new Paddle(new Vector2(xPos-1, 110), rectLocal, canvas);
+                paddleOpponent = new Paddle(new Vector2(1, 110), rectOpponent, canvas);
                 ball = new Ball(new Vector2((int)canvas.Width / 2, 50), EllipseBall, canvas);
             }
             else
             {
                 xPos = (int)canvas.Width - (int)rectOpponent.Width;
-                paddleLocal = new Paddle(new Vector2(0, 0), rectLocal, canvas);
-                paddleOpponent = new Paddle(new Vector2(xPos, 0), rectOpponent, canvas);
+                paddleLocal = new Paddle(new Vector2(1, 110), rectLocal, canvas);
+                paddleOpponent = new Paddle(new Vector2(xPos-1, 110), rectOpponent, canvas);
                 ball = new Ball(new Vector2((int)canvas.Width / 2, 50), EllipseBall, canvas);
             }
             isActiveGameLoop = true;

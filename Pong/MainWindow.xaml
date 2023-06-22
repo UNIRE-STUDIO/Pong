@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Pong"
         mc:Ignorable="d"
-        Title="Pong" Height="403" Width="425" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Background="#FF111111">
+        Title="Pong" Height="410" Width="435" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Background="#FF111111">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="0.15*"/>
@@ -45,13 +45,13 @@
         
         <Canvas x:Name="canvas" Height="282" Width="400" Background="#FF1E1E1E" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center">
             <Line X1="202" Y1="0" X2="200" Y2="282" Stroke="#FFD8D8D8" StrokeThickness="4" StrokeDashArray="2 3" StrokeDashCap="Round"/>
-            <Rectangle x:Name="rectLocal" Fill="#FFA0FF50" Height="60" Stroke="Black" Width="10" Canvas.Right="0" Visibility="Hidden"/>
-            <Rectangle x:Name="rectOpponent" Fill="#FFFF5050" Height="60" Stroke="Black" Width="10" Canvas.Left="0" Visibility="Hidden"/>
-            <Ellipse x:Name="EllipseBall" Fill="#FF36A5D8" Height="15" Canvas.Left="180" Stroke="Black" Canvas.Top="122" Width="15" Visibility="Hidden"/>
+            <Rectangle x:Name="rectLocal" Fill="#FFA0FF50" Height="50" Width="10" Canvas.Right="1" Canvas.Top="110" Visibility="Visible" RadiusX="4" RadiusY="4"></Rectangle>
+                <Rectangle x:Name="rectOpponent" Fill="#FFFF5050" Height="50" Width="10" Canvas.Left="1" Canvas.Top="110" Visibility="Visible" RadiusX="4" RadiusY="4"/>
+            <Ellipse x:Name="EllipseBall" Fill="#FFD8D8D8" Height="15" Canvas.Left="180" Canvas.Top="122" Width="15" Visibility="Visible"/>
         </Canvas>
-        <StackPanel x:Name="score"  Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="1">
-            <Label x:Name="leftSideScore" Content="0" FontSize="60" Margin="0,0,130,0" FontWeight="Bold" Foreground="#FFD8D8D8" FontFamily="/Pong;component/Resources/#Teko Medium"></Label>
-            <Label x:Name="rightSideScore" Content="0" FontSize="60" FontWeight="Bold" Foreground="#FFD8D8D8" FontFamily="/Pong;component/Resources/#Teko Medium"/>
+        <StackPanel x:Name="score"  Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="1" Margin="0,1,0,0">
+            <Label x:Name="leftSideScore" Content="0" FontSize="60" Margin="0,0,130,0" Foreground="#FFD8D8D8" FontFamily="/Resources/#Teko Medium"></Label>
+            <Label x:Name="rightSideScore" Content="0" FontSize="60" Foreground="#FFD8D8D8"  FontFamily="/Resources/#Teko Medium"/>
         </StackPanel>
     </Grid>
 </Window>

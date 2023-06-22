@@ -85,6 +85,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Ball.cs" />
+    <Compile Include="GameManager.cs" />
     <Compile Include="NetworkData.cs" />
     <Compile Include="ClientTcpSocket.cs" />
     <Compile Include="GameObject.cs" />
@@ -119,11 +120,21 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
-    <EmbeddedResource Include="Resources\Teko-Bold.ttf" />
-    <EmbeddedResource Include="Resources\Teko-Light.ttf" />
-    <EmbeddedResource Include="Resources\Teko-Medium.ttf" />
-    <EmbeddedResource Include="Resources\Teko-Regular.ttf" />
-    <EmbeddedResource Include="Resources\Teko-SemiBold.ttf" />
+    <Content Include="Resources\Teko-Bold.ttf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Teko-Light.ttf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Teko-Medium.ttf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Teko-Regular.ttf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Teko-SemiBold.ttf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -139,9 +150,6 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Icon1.ico" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\LOGO UN 256.png" />
