@@ -5,13 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Pong"
         mc:Ignorable="d"
-        Title="Pong" Height="403" Width="425" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
+        Title="Pong" Height="403" Width="425" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Background="#FF111111">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="0.15*"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
-        <Label x:Name="debugOutput" Content="00"></Label>
         <StackPanel x:Name="startMenu"  Orientation="Horizontal" Height="30" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="0">
             <Button Content="Create" HorizontalAlignment="Left" Width="75" Margin="0,0,40,0" Click="ButtonCreate_Click"/>
             <Button Content="Join" HorizontalAlignment="Left" Width="75" Click="ButtonJoin_Click"/>
@@ -44,7 +43,8 @@
             <Button Content="Disconnect" Width="75" Click="DisconnectClient_Click" Grid.Column="1"/>
         </Grid>
         
-        <Canvas x:Name="canvas" Height="282" Width="400" Background="#FFDEDEDE" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center">
+        <Canvas x:Name="canvas" Height="282" Width="400" Background="#FF1E1E1E" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center">
+            <Line X1="202" Y1="0" X2="200" Y2="282" Stroke="#FFD8D8D8" StrokeThickness="4" StrokeDashArray="5 3" StrokeDashCap="Round"/>
             <Rectangle x:Name="rectLocal" Fill="#FFA0FF50" Height="60" Stroke="Black" Width="10" Canvas.Right="0" Visibility="Hidden"/>
             <Rectangle x:Name="rectOpponent" Fill="#FFFF5050" Height="60" Stroke="Black" Width="10" Canvas.Left="0" Visibility="Hidden"/>
             <Ellipse x:Name="EllipseBall" Fill="#FF36A5D8" Height="15" Canvas.Left="180" Stroke="Black" Canvas.Top="122" Width="15" Visibility="Hidden"/>

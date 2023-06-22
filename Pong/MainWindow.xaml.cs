@@ -198,7 +198,7 @@ namespace Pong
                 xPos = (int)canvas.Width - (int)rectLocal.Width;
                 paddleLocal = new Paddle(new Vector2(xPos, 0), rectLocal, canvas);
                 paddleOpponent = new Paddle(new Vector2(0, 0), rectOpponent, canvas);
-                ball = new Ball(new Vector2((int)canvas.Width/2, 50), EllipseBall, canvas);
+                ball = new Ball(new Vector2((int)canvas.Width / 2, 50), EllipseBall, canvas);
             }
             else
             {
@@ -242,12 +242,14 @@ namespace Pong
                         ball.position.y > paddleOpponent.position.y - EllipseBall.Width && 
                         ball.position.y < paddleOpponent.position.y + rectOpponent.Height)
                     {
+                        ball.position.x = (int)rectLocal.Width;
                         ball.Direction.x = -ball.Direction.x;
                     }
                     else if (ball.position.x > canvas.Width - rectLocal.Width - EllipseBall.Width &&
                              ball.position.y > paddleLocal.position.y - EllipseBall.Width &&
                              ball.position.y < paddleLocal.position.y + rectLocal.Height)
                     {
+                        ball.position.x = (int)canvas.Width - (int)rectLocal.Width - (int)EllipseBall.Width;
                         ball.Direction.x = -ball.Direction.x;
                     }
 
@@ -260,23 +262,47 @@ namespace Pong
                     if (ball.position.x <= 0)
                     {
                         rightSideScore.Content = int.Parse(rightSideScore.Content.ToString()) + 1;
-                        isPause = true;
                         await Task.Delay(1000);
-                        Random rand = new Random();
-                        ball.position = new Vector2((int)canvas.Width/2, rand.Next(0, (int)(canvas.Height-EllipseBall.Height)));
+                        Goal();
                     }
-                    else if (ball.position.x > canvas.Width)
+                    else if (ball.position.x+EllipseBall.Width > canvas.Width)
                     {
                         leftSideScore.Content = int.Parse(leftSideScore.Content.ToString()) + 1;
-                        isPause = true;
                         await Task.Delay(1000);
-                        Random rand = new Random();
-                        ball.position = new Vector2((int)canvas.Width / 2, rand.Next(0, (int)(canvas.Height - EllipseBall.Height)));
+                        Goal();
                     }
                 }
                 ball.UpdatePos();
                 await Task.Delay(16);
             }
+        }
+        DispatcherTimer delayAfterGoal;
+        private void Goal()
+        {
+            isPause = true;
+            Random rand = new Random();
+            int dir = rand.Next(0, 4);
+            switch (dir)
+            {
+                case 0:
+                    ball.Direction.x = 1;
+                    ball.Direction.y = -1;
+                    break;
+                case 1:
+                    ball.Direction.x = 1;
+                    ball.Direction.y = 1;
+                    break;
+                case 2:
+                    ball.Direction.x = -1;
+                    ball.Direction.y = -1;
+                    break;
+                case 3:
+                    ball.Direction.x = -1;
+                    ball.Direction.y = 1;
+                    break;
+            }
+            ball.position = new Vector2((int)canvas.Width / 2, rand.Next(0, (int)(canvas.Height - EllipseBall.Height)));
+            isPause = false;
         }
 
         bool keyUpIsPressed = false;
