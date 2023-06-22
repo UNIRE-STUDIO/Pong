@@ -218,17 +218,13 @@ namespace Pong
             while (isActiveGameLoop)
             {
                 int direction = 0;
-                if ((Keyboard.GetKeyStates(Key.Down) & KeyStates.Down) > 0)
+                if (keyDownIsPressed)
                 {
                     direction = 1;
                 }
-                else if ((Keyboard.GetKeyStates(Key.Up) & KeyStates.Down) > 0)
+                else if (keyUpIsPressed)
                 {
                     direction = -1;
-                }
-                else if ((Keyboard.GetKeyStates(Key.Space) & KeyStates.Down) > 0)
-                {
-                    isPause = !isPause;
                 }
                 paddleLocal.Direction = new Vector2(paddleLocal.Direction.x, direction);
                 paddleLocal.Calculation();
@@ -280,6 +276,43 @@ namespace Pong
                 }
                 ball.UpdatePos();
                 await Task.Delay(16);
+            }
+        }
+
+        bool keyUpIsPressed = false;
+        bool keyDownIsPressed = false;
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            base.OnKeyDown(e);
+
+            if (e.Key == Key.Up)
+            {
+                keyUpIsPressed = true;
+            }
+
+            if (e.Key == Key.Down)
+            {
+                keyDownIsPressed = true;
+            }
+
+            if (e.Key == Key.Space)
+            {
+                isPause = !isPause;
+            }
+        }
+
+        protected override void OnKeyUp(KeyEventArgs e)
+        {
+            base.OnKeyUp(e);
+
+            if (e.Key == Key.Up)
+            {
+                keyUpIsPressed = false;
+            }
+
+            if (e.Key == Key.Down)
+            {
+                keyDownIsPressed = false;
             }
         }
 
