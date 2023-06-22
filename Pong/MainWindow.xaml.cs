@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -144,6 +145,7 @@ namespace Pong
             {
                 networkReceiveData.dataDictionary.Clear();
                 networkReceiveData.Unpacking(socket.Receive());
+
                 if (networkReceiveData.dataDictionary.TryGetValue((char)112, out int y))
                 {
                     paddleOpponent.position = new Vector2(paddleOpponent.position.x, y);
@@ -164,7 +166,7 @@ namespace Pong
             while (socket.isConnect)
             {
                 networkSendData.dataDictionary.Clear();
-                networkSendData.dataDictionary.Add('p', paddleLocal.position.y);
+                networkSendData.dataDictionary.Add((char)112, paddleLocal.position.y);
                 if (serverSocket != null)
                 {
                     networkSendData.dataDictionary.Add((char)113, ball.position.x);
@@ -172,7 +174,7 @@ namespace Pong
                 }
                 socket.Send(networkSendData.ToString());
 
-                await Task.Delay(70);
+                await Task.Delay(50);
             }
         }
 

@@ -43,7 +43,6 @@ namespace Pong
                 }
                 if (checkKey)
                 {
-                    Trace.WriteLine(partMessage.ToString());
                     if (i != 0)
                     {
                         dataDictionary.Add(key, int.Parse(partMessage.ToString()));
@@ -54,6 +53,7 @@ namespace Pong
                 else if (i == message.Length - 1) 
                 {
                     partMessage.Append(message[i]);
+                    dataDictionary.Add(key, int.Parse(partMessage.ToString()));
                 }
                 else
                 {

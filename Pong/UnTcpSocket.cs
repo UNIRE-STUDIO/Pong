@@ -43,14 +43,13 @@ namespace Pong
             socketListner.ReceiveBufferSize = 1;
             try
             {
-                byte[] buffer = new byte[1];
+                byte[] buffer = new byte[4];
                 int countBytes = 0;
                 receiveData.Clear();
                 do
                 {
                     countBytes = socketListner.Receive(buffer);
                     receiveData.Append(Encoding.UTF8.GetString(buffer, 0, countBytes));
-                    Trace.WriteLine(Encoding.UTF8.GetString(buffer, 0, countBytes));
                 }
                 while (socketListner.Available > 0);
                 return receiveData.ToString();
