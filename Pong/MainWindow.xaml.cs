@@ -176,7 +176,7 @@ namespace Pong
             {
                 serverSocket.Disconnect();
             }
-            else
+            else if (clientSocket != null)
             {
                 clientSocket.Disconnect();
             }
