@@ -230,13 +230,13 @@ namespace Pong
 
                     if (ball.position.x <= 0)
                     {
-                        LeftSideScore++;
+                        RightSideScore++;
                         await Task.Delay(1000);
                         Goal();
                     }
                     else if (ball.position.x + EllipseBall.Width > canvas.Width)
                     {
-                        RightSideScore++; 
+                        LeftSideScore++; 
                         await Task.Delay(1000);
                         Goal();
                     }
