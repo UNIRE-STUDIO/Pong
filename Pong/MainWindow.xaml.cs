@@ -25,19 +25,19 @@ namespace Pong
     /// </summary>
     public partial class MainWindow : Window
     {
-        Paddle paddleLocal;
-        Paddle paddleOpponent;
-        Ball ball;
+        GameManager gameManager;
+        InputManager inputManager;
 
         ServerTcpSocket serverSocket;
         ClientTcpSocket clientSocket;
 
-        NetworkData networkSendData = new NetworkData();
-        NetworkData networkReceiveData = new NetworkData();
-
         public MainWindow()
         {
             InitializeComponent();
+            inputManager = new InputManager();
+            KeyDown += new KeyEventHandler(inputManager.OnKeyDown);
+            KeyUp += new KeyEventHandler(inputManager.OnKeyUp);
+            gameManager = new GameManager(this, inputManager);
         }
 
         private void ButtonCreate_Click(object sender, RoutedEventArgs e)
@@ -73,7 +73,8 @@ namespace Pong
             }
             serverSocket = new ServerTcpSocket();
             serverSocket.eventStart += (hendler, ee) => {
-                GameSetUp();
+                gameManager.isHost = true;
+                gameManager.GameSetUp();
                 serverStatus.Content = "Сервер запущен, ожидаем подключения...";
             };
             serverSocket.eventErrorStart += (hendler, ee) =>
@@ -82,8 +83,9 @@ namespace Pong
             };
             serverSocket.eventConnect += async (hendler, ee) => {
                 serverStatus.Content = "Сервер: Подключение установлено!";
-                await Task.Run(() => SendPos(serverSocket));
-                await Task.Run(() => ReceivePos(serverSocket));
+                await Task.Run(() => gameManager.SendPos(serverSocket));
+                int errorId = await Task.Run(() => gameManager.ReceivePos(serverSocket));
+                if (errorId == 1) DisconnectServer_Click();
             };
             serverSocket.eventErrorReceive += (hendler, ee) => {
                 MessageBox.Show("Сервер: Не удалось получить данные");
@@ -121,14 +123,17 @@ namespace Pong
             };
             clientSocket.eventConnect += async (handle, ee) =>
             {
-                GameSetUp();
-                await Task.Run(() => SendPos(clientSocket));
-                await Task.Run(() => ReceivePos(clientSocket));
-                clentStatus.Content = "Подключение установлено";
+                gameManager.isHost = false;
+                clentStatus.Content = "Клиент: Подключение установлено";
+                gameManager.GameSetUp();
+                await Task.Run(() => gameManager.SendPos(clientSocket));
+                int errorId = await Task.Run(() => gameManager.ReceivePos(clientSocket));
+                if (errorId == 2) DisconnectClient_Click();
             };
             clientSocket.eventErrorConnect += (handle, ee) =>
             {
                 MessageBox.Show("Клиент: Не удалось подключиться...");
+                DisconnectClient_Click();
             };
             
             clientSocket.Connect(serverIp, serverPort);
@@ -137,223 +142,44 @@ namespace Pong
             joinMenu.Visibility = Visibility.Hidden;
         }
 
-        private async void ReceivePos(UnTcpSocket socket)
+        public void DisconnectClient_Click(object sender = null, RoutedEventArgs e = null)
         {
-            while (socket.isConnect)
-            {
-                networkReceiveData.dataDictionary.Clear();
-                networkReceiveData.Unpacking(socket.Receive());
-
-                if (networkReceiveData.dataDictionary.TryGetValue((char)112, out int y))
-                {
-                    paddleOpponent.position = new Vector2(paddleOpponent.position.x, y);
-                }
-                
-                if (clientSocket != null)
-                { 
-                    if (networkReceiveData.dataDictionary.TryGetValue((char)113, out int posX) &&
-                        networkReceiveData.dataDictionary.TryGetValue((char)114, out int posY))
-                        ball.position = new Vector2(posX, posY);
-                }
-                await Task.Delay(30);
-            }
-        }
-
-        private async void SendPos(UnTcpSocket socket)
-        {
-            while (socket.isConnect)
-            {
-                networkSendData.dataDictionary.Clear();
-                networkSendData.dataDictionary.Add((char)112, paddleLocal.position.y);
-                if (serverSocket != null)
-                {
-                    networkSendData.dataDictionary.Add((char)113, ball.position.x);
-                    networkSendData.dataDictionary.Add((char)114, ball.position.y);
-                }
-                socket.Send(networkSendData.ToString());
-
-                await Task.Delay(50);
-            }
-        }
-
-        private void GameExit()
-        {
-            isActiveGameLoop = false;
+            gameManager.StopGameLoop();
+            gameManager.ResetGame();
             rectLocal.Visibility = Visibility.Hidden;
             rectOpponent.Visibility = Visibility.Hidden;
             EllipseBall.Visibility = Visibility.Hidden;
-        }
 
-        // GAME LOOOOOOOOOOOP
-        private void GameSetUp()
-        {
-            rectLocal.Visibility = Visibility.Visible;
-            rectOpponent.Visibility = Visibility.Visible;
-            EllipseBall.Visibility = Visibility.Visible;
-            int xPos = 0;
-            if (serverSocket != null) 
-            {
-                xPos = (int)canvas.Width - (int)rectLocal.Width;
-                paddleLocal = new Paddle(new Vector2(xPos-1, 110), rectLocal, canvas);
-                paddleOpponent = new Paddle(new Vector2(1, 110), rectOpponent, canvas);
-                ball = new Ball(new Vector2((int)canvas.Width / 2, 50), EllipseBall, canvas);
-            }
-            else
-            {
-                xPos = (int)canvas.Width - (int)rectOpponent.Width;
-                paddleLocal = new Paddle(new Vector2(1, 110), rectLocal, canvas);
-                paddleOpponent = new Paddle(new Vector2(xPos-1, 110), rectOpponent, canvas);
-                ball = new Ball(new Vector2((int)canvas.Width / 2, 50), EllipseBall, canvas);
-            }
-            isActiveGameLoop = true;
-            GamerLoop();
-        }
-
-        bool isPause = true;
-        bool isActiveGameLoop = false;
-        private async void GamerLoop()
-        {
-            while (isActiveGameLoop)
-            {
-                int direction = 0;
-                if (keyDownIsPressed)
-                {
-                    direction = 1;
-                }
-                else if (keyUpIsPressed)
-                {
-                    direction = -1;
-                }
-                paddleLocal.Direction = new Vector2(paddleLocal.Direction.x, direction);
-                paddleLocal.Calculation();
-                paddleLocal.UpdatePos();
-                paddleOpponent.UpdatePos();
-
-                // Поменять на BOOL IsServer
-                if (serverSocket != null && !isPause)
-                {
-                    ball.position.x = ball.position.x + ball.Direction.x * ball.Speed;
-                    ball.position.y = ball.position.y + ball.Direction.y * ball.Speed;
-
-                    // Касаемся ракеток
-                    if (ball.position.x < rectLocal.Width && 
-                        ball.position.y > paddleOpponent.position.y - EllipseBall.Width && 
-                        ball.position.y < paddleOpponent.position.y + rectOpponent.Height)
-                    {
-                        ball.position.x = (int)rectLocal.Width;
-                        ball.Direction.x = -ball.Direction.x;
-                    }
-                    else if (ball.position.x > canvas.Width - rectLocal.Width - EllipseBall.Width &&
-                             ball.position.y > paddleLocal.position.y - EllipseBall.Width &&
-                             ball.position.y < paddleLocal.position.y + rectLocal.Height)
-                    {
-                        ball.position.x = (int)canvas.Width - (int)rectLocal.Width - (int)EllipseBall.Width;
-                        ball.Direction.x = -ball.Direction.x;
-                    }
-
-                    if (ball.position.y >= canvas.Height-EllipseBall.Width || 
-                        ball.position.y <= 0)
-                    {
-                        ball.Direction.y = -ball.Direction.y;
-                    }
-
-                    if (ball.position.x <= 0)
-                    {
-                        rightSideScore.Content = int.Parse(rightSideScore.Content.ToString()) + 1;
-                        await Task.Delay(1000);
-                        Goal();
-                    }
-                    else if (ball.position.x+EllipseBall.Width > canvas.Width)
-                    {
-                        leftSideScore.Content = int.Parse(leftSideScore.Content.ToString()) + 1;
-                        await Task.Delay(1000);
-                        Goal();
-                    }
-                }
-                ball.UpdatePos();
-                await Task.Delay(16);
-            }
-        }
-        DispatcherTimer delayAfterGoal;
-        private void Goal()
-        {
-            isPause = true;
-            Random rand = new Random();
-            int dir = rand.Next(0, 4);
-            switch (dir)
-            {
-                case 0:
-                    ball.Direction.x = 1;
-                    ball.Direction.y = -1;
-                    break;
-                case 1:
-                    ball.Direction.x = 1;
-                    ball.Direction.y = 1;
-                    break;
-                case 2:
-                    ball.Direction.x = -1;
-                    ball.Direction.y = -1;
-                    break;
-                case 3:
-                    ball.Direction.x = -1;
-                    ball.Direction.y = 1;
-                    break;
-            }
-            ball.position = new Vector2((int)canvas.Width / 2, rand.Next(0, (int)(canvas.Height - EllipseBall.Height)));
-            isPause = false;
-        }
-
-        bool keyUpIsPressed = false;
-        bool keyDownIsPressed = false;
-        protected override void OnKeyDown(KeyEventArgs e)
-        {
-            base.OnKeyDown(e);
-
-            if (e.Key == Key.Up)
-            {
-                keyUpIsPressed = true;
-            }
-
-            if (e.Key == Key.Down)
-            {
-                keyDownIsPressed = true;
-            }
-
-            if (e.Key == Key.Space)
-            {
-                isPause = !isPause;
-            }
-        }
-
-        protected override void OnKeyUp(KeyEventArgs e)
-        {
-            base.OnKeyUp(e);
-
-            if (e.Key == Key.Up)
-            {
-                keyUpIsPressed = false;
-            }
-
-            if (e.Key == Key.Down)
-            {
-                keyDownIsPressed = false;
-            }
-        }
-
-
-        private void DisconnectClient_Click(object sender, RoutedEventArgs e)
-        {
             clientMenu.Visibility = Visibility.Hidden;
             clientSocket.Disconnect();
             joinMenu.Visibility = Visibility.Visible;
         }
 
-        private void DisconnectServer_Click(object sender, RoutedEventArgs e)
+        public void DisconnectServer_Click(object sender = null, RoutedEventArgs e = null)
         {
-            GameExit();
+            gameManager.StopGameLoop();
+            gameManager.ResetGame();
+            rectLocal.Visibility = Visibility.Hidden;
+            rectOpponent.Visibility = Visibility.Hidden;
+            EllipseBall.Visibility = Visibility.Hidden;
+
             serverMenu.Visibility = Visibility.Hidden;
             serverSocket.Disconnect();
             createMenu.Visibility = Visibility.Visible;
+        }
+
+        private void Window_Closed(object sender, EventArgs e)
+        {
+            gameManager.StopGameLoop();
+            gameManager.ResetGame();
+            if (serverSocket != null)
+            {
+                serverSocket.Disconnect();
+            }
+            else
+            {
+                clientSocket.Disconnect();
+            }
         }
     }
 }

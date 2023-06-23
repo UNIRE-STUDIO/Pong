@@ -7,18 +7,21 @@ using System.Threading.Tasks;
 
 namespace Pong
 {
+    public enum Keys
+    {
+        paddlePosY = 112,
+        ballPosX = 113,
+        ballPosY = 114,
+        leftSideScore = 115,
+        rightSideScore = 116
+    }
+
+    // Переделать в статический класс возврощающий словарь или ещё что-то
     class NetworkData
     {
         public Dictionary<char, int> dataDictionary = new Dictionary<char, int>();
 
-        // Стоит вынести отдельно
-        public char[] keys = {
-            (char)112, //
-            (char)113, //
-            (char)114, //
-            (char)115, //
-            (char)116  //
-        };
+        private int lengthKeys = typeof(Keys).GetFields().Length;
 
         StringBuilder dataBuffer = new StringBuilder();
 
@@ -34,14 +37,18 @@ namespace Pong
 
         public void Unpacking(string message)
         {
+            if (message == null)
+            {
+                throw new Exception("message == null");
+            }
             char key = message[0];
             StringBuilder partMessage = new StringBuilder();
             for (int i = 0; i < message.Length; i++)
             {
                 bool checkKey = false;
-                for (int j = 0; j < keys.Length; j++)
+                foreach(var a in Enum.GetValues(typeof(Keys)))
                 {
-                    if (message[i] == keys[j])
+                    if (message[i] == (char)(Keys)a)
                     {
                         checkKey = true;
                         break;

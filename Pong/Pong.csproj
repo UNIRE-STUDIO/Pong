@@ -86,6 +86,7 @@
     </Compile>
     <Compile Include="Ball.cs" />
     <Compile Include="GameManager.cs" />
+    <Compile Include="InputManager.cs" />
     <Compile Include="NetworkData.cs" />
     <Compile Include="ClientTcpSocket.cs" />
     <Compile Include="GameObject.cs" />

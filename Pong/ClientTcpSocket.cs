@@ -7,6 +7,7 @@ using System.Windows.Threading;
 using System.Net.Sockets;
 using System.Net;
 using System.Windows;
+using System.Diagnostics;
 
 namespace Pong
 {
@@ -22,9 +23,27 @@ namespace Pong
                 tcpEndPoint = new IPEndPoint(IPAddress.Parse(ipAddress), port);
                 socketListner = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 eventStart?.Invoke(this, null);
-                await Task.Run(() => socketListner.Connect(tcpEndPoint));
-                isConnect = true;
-                eventConnect?.Invoke(this, null);
+                isConnect = await Task.Run(() =>
+                {
+                    try
+                    {
+                        socketListner.Connect(tcpEndPoint);
+                        return true;
+                    }
+                    catch (SocketException ex) when (ex.ErrorCode == 10061)
+                    {
+                        return false;
+                    }
+                });
+                if (isConnect)
+                {
+                    eventConnect?.Invoke(this, null);
+                }
+                else
+                {
+                    eventErrorConnect?.Invoke(this, null);
+                }
+                
             }
             catch (Exception)
             {
