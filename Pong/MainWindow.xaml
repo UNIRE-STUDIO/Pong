@@ -5,11 +5,15 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Pong"
         mc:Ignorable="d"
-        Title="Pong" Height="410" Width="435" ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen" Background="#FF111111" Closed="Window_Closed">
+        Title="Pong" Width="420" Height="435"  ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen" Background="#FF111111" Closed="Window_Closed">
+    <Window.Resources>
+        <local:MathConverter x:Key="mathConverter"/>
+    </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="0.15*"/>
+            <RowDefinition Height="0.13*"/>
             <RowDefinition/>
+            <RowDefinition Height="0.09*"/>
         </Grid.RowDefinitions>
         <StackPanel x:Name="startMenu"  Orientation="Horizontal" Height="30" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="0">
             <Button Content="Create" HorizontalAlignment="Left" Width="75" Margin="0,0,40,0" Click="ButtonCreate_Click"/>
@@ -43,14 +47,19 @@
             <Button Content="Disconnect" Width="75" Click="DisconnectClient_Click" Grid.Column="1"/>
         </Grid>
         <Label x:Name="labelFps" Content="00" Foreground="#FF8EB91A" HorizontalAlignment="Left" VerticalAlignment="Top"></Label>
-        <Canvas x:Name="canvas" Height="310" Width="400" Background="#FF1E1E1E" Grid.Row="1" VerticalAlignment="Top" HorizontalAlignment="Center">
-            <Line X1="202" Y1="0" X2="200" Y2="300" Stroke="#FFD8D8D8" StrokeThickness="4" StrokeDashArray="2 4" StrokeDashCap="Round"/>
+        <Canvas x:Name="canvas" Width="390" Height="330"  Background="#FF1E1E1E" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center">
+            <Line x:Name="line" X1="{Binding ElementName=canvas,Path=Width, Converter={StaticResource mathConverter}, ConverterParameter=@VALUE/2}" Y1="0" X2="{Binding ElementName=canvas,Path=Width, Converter={StaticResource mathConverter}, ConverterParameter=@VALUE/2}" Y2="{Binding ElementName=canvas,Path=Height}" Stroke="#FFD8D8D8" StrokeThickness="4" StrokeDashArray="2 4" StrokeDashCap="Round"/>
             <Rectangle x:Name="rectLocal" Fill="#FFA0FF50" Height="50" Width="8" Canvas.Right="1" Canvas.Top="110" Visibility="Visible" RadiusX="4" RadiusY="4"></Rectangle>
             <Rectangle x:Name="rectOpponent" Fill="#FFFF5050" Height="50" Width="8" Canvas.Left="1" Canvas.Top="110" Visibility="Visible" RadiusX="4" RadiusY="4"/>
         </Canvas>
-        <StackPanel x:Name="score"  Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="1" Margin="0,1,0,0">
-            <Label x:Name="leftSideScore" Content="0" FontSize="60" Margin="0,0,130,0" Foreground="#FFD8D8D8" FontFamily="/Resources/#Teko Medium"></Label>
-            <Label x:Name="rightSideScore" Content="0" FontSize="60" Foreground="#FFD8D8D8"  FontFamily="/Resources/#Teko Medium"/>
+        <StackPanel x:Name="score"  Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="1" Margin="0,-15,0,0" VerticalAlignment="Top">
+            <Label x:Name="leftSideScore" Content="0" FontSize="60" Margin="0,0,130,0" Foreground="#FFD8D8D8" FontFamily="/Resources/#Teko Medium" Height="70"/>
+            <Label x:Name="rightSideScore" Content="0" FontSize="60" Foreground="#FFD8D8D8"  FontFamily="/Resources/#Teko Medium" Height="70" />
+        </StackPanel>
+
+        <StackPanel x:Name="panelSelectSize" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="2" Visibility="Visible" Margin="10,0">
+            <Button Content="600x600" Width="50" Margin="5,0" FontSize="10" BorderBrush="#FF1E1E1E" Background="#FF1E1E1E" Foreground="#FFD1D1D1" Click="SecondSize_Click"/>
+            <Button Content="400x310" Width="50" Margin="5,0" FontSize="10" BorderBrush="#FF1E1E1E" Background="#FF1E1E1E" Foreground="#FFD1D1D1" Click="FirstSize_Click"/>
         </StackPanel>
     </Grid>
 </Window>

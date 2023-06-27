@@ -28,6 +28,7 @@ namespace Pong
     {
         GameManager gameManager;
         InputManager inputManager;
+        SettingsManager settingsManager;
 
         ServerTcpSocket serverSocket;
         ClientTcpSocket clientSocket;
@@ -39,16 +40,19 @@ namespace Pong
             KeyDown += new KeyEventHandler(inputManager.OnKeyDown);
             KeyUp += new KeyEventHandler(inputManager.OnKeyUp);
             gameManager = new GameManager(this, inputManager);
+            settingsManager = new SettingsManager(this);
         }
 
         private void ButtonCreate_Click(object sender, RoutedEventArgs e)
         {
+            settingsManager.isActive = false;
             startMenu.Visibility = Visibility.Hidden;
             createMenu.Visibility = Visibility.Visible;
         }
 
         private void ButtonJoin_Click(object sender, RoutedEventArgs e)
         {
+            settingsManager.isActive = false;
             startMenu.Visibility = Visibility.Hidden;
             joinMenu.Visibility = Visibility.Visible;
             RegistryKey currentUserKey = Registry.CurrentUser;
@@ -58,6 +62,7 @@ namespace Pong
         }
         private void ButtonBack_Click(object sender, RoutedEventArgs e)
         {
+            settingsManager.isActive = true;
             startMenu.Visibility = Visibility.Visible;
             createMenu.Visibility = Visibility.Hidden;
             joinMenu.Visibility = Visibility.Hidden;
@@ -110,6 +115,7 @@ namespace Pong
         // Клиентская часть
         private void ConnectRoom_Click(object sender, RoutedEventArgs e)
         {
+            settingsManager.isActive = false;
             string serverIp;
             int serverPort;
             try
@@ -210,5 +216,8 @@ namespace Pong
                 await Task.Delay(300);
             }
         }
+
+        private void FirstSize_Click(object sender, RoutedEventArgs e) => settingsManager.ChangeSizeWindow(0);
+        private void SecondSize_Click(object sender, RoutedEventArgs e) => settingsManager.ChangeSizeWindow(1);
     }
 }

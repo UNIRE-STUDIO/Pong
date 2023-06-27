@@ -87,6 +87,8 @@
     <Compile Include="GameObjects\Ball.cs" />
     <Compile Include="GameManager.cs" />
     <Compile Include="InputManager.cs" />
+    <Compile Include="MathConverter.cs" />
+    <Compile Include="MenuManager.cs" />
     <Compile Include="NetworkData.cs" />
     <Compile Include="ClientTcpSocket.cs" />
     <Compile Include="GameObjects\GameObject.cs" />
