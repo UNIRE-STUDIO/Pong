@@ -186,6 +186,7 @@ namespace Pong
             int xPos = 0;
             if (isHost)
             {
+                isPause = true;
                 xPos = (int)canvas.Width - (int)rectLocal.Width;
                 paddleLocal = new Paddle(new Vector2(xPos - 1, 110), rectLocal, canvas);
                 paddleOpponent = new Paddle(new Vector2(1, 110), rectOpponent, canvas);
@@ -199,7 +200,7 @@ namespace Pong
                 paddleLocal = new Paddle(new Vector2(1, 110), rectLocal, canvas);
                 paddleOpponent = new Paddle(new Vector2(xPos - 1, 110), rectOpponent, canvas);
             }
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 15; i++)
             {
                 Ball newBall = new Ball(new Vector2((int)canvas.Width / 2, 50), new Ellipse(), canvas);
                 balls.Add(newBall);

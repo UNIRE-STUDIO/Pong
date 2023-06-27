@@ -58,8 +58,8 @@
         </StackPanel>
 
         <StackPanel x:Name="panelSelectSize" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="2" Visibility="Visible" Margin="10,0">
-            <Button Content="600x600" Width="50" Margin="5,0" FontSize="10" BorderBrush="#FF1E1E1E" Background="#FF1E1E1E" Foreground="#FFD1D1D1" Click="SecondSize_Click"/>
-            <Button Content="400x310" Width="50" Margin="5,0" FontSize="10" BorderBrush="#FF1E1E1E" Background="#FF1E1E1E" Foreground="#FFD1D1D1" Click="FirstSize_Click"/>
+            <Button Content="540x520" Width="50" Margin="5,0" FontSize="10" BorderBrush="#FF1E1E1E" Background="#FF1E1E1E" Foreground="#FFD1D1D1" Click="SecondSize_Click"/>
+            <Button Content="420x435" Width="50" Margin="5,0" FontSize="10" BorderBrush="#FF1E1E1E" Background="#FF1E1E1E" Foreground="#FFD1D1D1" Click="FirstSize_Click"/>
         </StackPanel>
     </Grid>
 </Window>

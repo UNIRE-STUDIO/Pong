@@ -17,12 +17,12 @@ namespace Pong
         public void OnKeyDown(object sender, KeyEventArgs e)
         {
 
-            if (e.Key == Key.Up)
+            if (e.Key == Key.Up || e.Key == Key.W)
             {
                 keyUpIsPressed = true;
             }
-
-            if (e.Key == Key.Down)
+           
+            if (e.Key == Key.Down || e.Key == Key.S)
             {
                 keyDownIsPressed = true;
             }
@@ -36,12 +36,12 @@ namespace Pong
         public void OnKeyUp(object sender, KeyEventArgs e)
         {
 
-            if (e.Key == Key.Up)
+            if (e.Key == Key.Up || e.Key == Key.W)
             {
                 keyUpIsPressed = false;
             }
 
-            if (e.Key == Key.Down)
+            if (e.Key == Key.Down || e.Key == Key.S)
             {
                 keyDownIsPressed = false;
             }
