@@ -154,7 +154,7 @@ namespace Pong
                         RightSideScore = int.Parse(right);
                     }
                 }
-                await Task.Delay(30);
+                await Task.Delay(10);
             }
             return errorId;
         }
@@ -174,7 +174,7 @@ namespace Pong
                 }
                 socket.Send(networkSendData.ToString());
                 networkSendData.dataDictionary.Clear();
-                await Task.Delay(50);
+                await Task.Delay(20);
             }
         }
 
