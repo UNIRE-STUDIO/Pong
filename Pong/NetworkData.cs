@@ -9,9 +9,27 @@ namespace Pong
 {
     public enum Keys
     {
+        b1 = 1,
+        b2 = 2,
+        b3 = 3,
+        b4 = 4,
+        b5 = 5,
+        b6 = 6,
+        b7 = 7,
+        b8 = 8,
+        b9 = 9,
+        b10 = 10,
+        b11 = 11,
+        b12 = 12,
+        b13 = 13,
+        b14 = 14,
+        b15 = 15,
+        b16 = 16,
+        b17 = 17,
+        b18 = 18,
+        b19 = 19,
+        b20 = 20,
         paddlePosY = 112,
-        ballPosX = 113,
-        ballPosY = 114,
         leftSideScore = 115,
         rightSideScore = 116
     }
@@ -19,7 +37,7 @@ namespace Pong
     // Переделать в статический класс возврощающий словарь или ещё что-то
     class NetworkData
     {
-        public Dictionary<char, int> dataDictionary = new Dictionary<char, int>();
+        public Dictionary<char, string> dataDictionary = new Dictionary<char, string>();
 
         private int lengthKeys = typeof(Keys).GetFields().Length;
 
@@ -60,11 +78,11 @@ namespace Pong
                     {
                         if (dataDictionary.ContainsKey(key))
                         {
-                            dataDictionary[key] = int.Parse(partMessage.ToString());
+                            dataDictionary[key] = partMessage.ToString();
                         }
                         else
                         {
-                            dataDictionary.Add(key, int.Parse(partMessage.ToString()));
+                            dataDictionary.Add(key, partMessage.ToString());
                         }
                         partMessage.Clear();
                     }
@@ -75,11 +93,11 @@ namespace Pong
                     partMessage.Append(message[i]);
                     if (dataDictionary.ContainsKey(key))
                     {
-                        dataDictionary[key] = int.Parse(partMessage.ToString());
+                        dataDictionary[key] = partMessage.ToString();
                     }
                     else
                     {
-                        dataDictionary.Add(key, int.Parse(partMessage.ToString()));
+                        dataDictionary.Add(key, partMessage.ToString());
                     }
                 }
                 else

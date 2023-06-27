@@ -45,11 +45,9 @@ namespace Pong
                 }
                 
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                // Вывести через делегаты
-                MessageBox.Show("Клиент: Не удалось подключиться...");
-                eventErrorConnect?.Invoke(this, null);
+                eventErrorConnect?.Invoke(e, null);
             }
         }
     }

@@ -14,7 +14,7 @@ namespace Pong
         public Paddle(Vector2 pos, Shape shape, Canvas cnvs) : base(pos, shape, cnvs) { }
 
         public Vector2 Direction { get; set; } = new Vector2(0, 0);
-        public int Speed { get; set; } = 3;
+        public int Speed { get; set; } = 4;
 
         public void Calculation()
         {

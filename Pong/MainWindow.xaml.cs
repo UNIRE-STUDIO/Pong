@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -50,6 +51,10 @@ namespace Pong
         {
             startMenu.Visibility = Visibility.Hidden;
             joinMenu.Visibility = Visibility.Visible;
+            RegistryKey currentUserKey = Registry.CurrentUser;
+            RegistryKey pongKey = currentUserKey.OpenSubKey("pong", true);
+            if (pongKey != null && pongKey.GetValue("ip") != null)
+            textBoxIp.Text = pongKey.GetValue("ip").ToString();
         }
         private void ButtonBack_Click(object sender, RoutedEventArgs e)
         {
@@ -75,6 +80,7 @@ namespace Pong
             serverSocket.eventStart += (hendler, ee) => {
                 gameManager.isHost = true;
                 gameManager.GameSetUp();
+                FpsUpdate();
                 serverStatus.Content = "Сервер запущен, ожидаем подключения...";
             };
             serverSocket.eventErrorStart += (hendler, ee) =>
@@ -116,6 +122,21 @@ namespace Pong
                 MessageBox.Show("Неверный формат");
                 return;
             }
+            try
+            {
+                RegistryKey currentUserKey = Registry.CurrentUser;
+                if (currentUserKey != null)
+                {
+                    RegistryKey pongKey = currentUserKey.CreateSubKey("pong");
+                    pongKey.SetValue("ip", serverIp);
+                    pongKey.Close();
+                }
+            }
+            catch (Exception ee)
+            {
+                MessageBox.Show("Ошибка сохранения: " + ee.Message);
+            }
+
             clientSocket = new ClientTcpSocket();
             clientSocket.eventStart += (handle, ee) =>
             {
@@ -130,9 +151,10 @@ namespace Pong
                 int errorId = await Task.Run(() => gameManager.ReceivePos(clientSocket));
                 if (errorId == 2) DisconnectClient_Click();
             };
-            clientSocket.eventErrorConnect += (handle, ee) =>
+            clientSocket.eventErrorConnect += (ee, args) =>
             {
-                MessageBox.Show("Клиент: Не удалось подключиться...");
+                // Вывести через делегаты
+                MessageBox.Show("Клиент: Не удалось подключиться... " + ((Exception)ee).Message);
                 DisconnectClient_Click();
             };
             
@@ -148,7 +170,6 @@ namespace Pong
             gameManager.ResetGame();
             rectLocal.Visibility = Visibility.Hidden;
             rectOpponent.Visibility = Visibility.Hidden;
-            EllipseBall.Visibility = Visibility.Hidden;
 
             clientMenu.Visibility = Visibility.Hidden;
             clientSocket.Disconnect();
@@ -161,7 +182,6 @@ namespace Pong
             gameManager.ResetGame();
             rectLocal.Visibility = Visibility.Hidden;
             rectOpponent.Visibility = Visibility.Hidden;
-            EllipseBall.Visibility = Visibility.Hidden;
 
             serverMenu.Visibility = Visibility.Hidden;
             serverSocket.Disconnect();
@@ -179,6 +199,15 @@ namespace Pong
             else if (clientSocket != null)
             {
                 clientSocket.Disconnect();
+            }
+        }
+
+        private async void FpsUpdate()
+        {
+            while (gameManager.isActiveGameLoop)
+            {
+                labelFps.Content = gameManager.fps.ToString();
+                await Task.Delay(300);
             }
         }
     }
