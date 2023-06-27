@@ -188,8 +188,8 @@ namespace Pong
             {
                 isPause = true;
                 xPos = (int)canvas.Width - (int)rectLocal.Width;
-                paddleLocal = new Paddle(new Vector2(xPos - 1, 110), rectLocal, canvas);
-                paddleOpponent = new Paddle(new Vector2(1, 110), rectOpponent, canvas);
+                paddleLocal = new Paddle(new Vector2(xPos - 1, canvas.Height/2), rectLocal, canvas);
+                paddleOpponent = new Paddle(new Vector2(1, canvas.Height / 2), rectOpponent, canvas);
 
                 timerAfterGoal = new DispatcherTimer();
                 timerAfterGoal.Interval = TimeSpan.FromSeconds(delayAfterGoal);
@@ -197,20 +197,21 @@ namespace Pong
             else
             {
                 xPos = (int)canvas.Width - (int)rectOpponent.Width;
-                paddleLocal = new Paddle(new Vector2(1, 110), rectLocal, canvas);
-                paddleOpponent = new Paddle(new Vector2(xPos - 1, 110), rectOpponent, canvas);
+                paddleLocal = new Paddle(new Vector2(1, canvas.Height / 2), rectLocal, canvas);
+                paddleOpponent = new Paddle(new Vector2(xPos - 1, canvas.Height / 2), rectOpponent, canvas);
             }
-            for (int i = 0; i < 15; i++)
+            if (balls.Count == 0)
             {
-                Ball newBall = new Ball(new Vector2((int)canvas.Width / 2, 50), new Ellipse(), canvas);
-                balls.Add(newBall);
-                if (i == 0)
+                for (int i = 0; i < 15; i++)
                 {
-                    newBall.visible = true;
-                    newBall.SetVisibility(true); // Включаем видимость лишь первого мячика
-                    activeBalls.Add(newBall);
+                    Ball newBall = new Ball(new Vector2((int)canvas.Width / 2, 50), new Ellipse(), canvas);
+                    balls.Add(newBall);
                 }
             }
+            balls[0].visible = true;
+            balls[0].SetVisibility(true); // Включаем видимость лишь первого мячика
+            activeBalls.Add(balls[0]);
+
             isActiveGameLoop = true;
             GamerLoop();
         }
@@ -271,6 +272,7 @@ namespace Pong
             paddleLocal.Direction = new Vector2(paddleLocal.Direction.x, direction);
             paddleLocal.Calculation();
             paddleLocal.UpdatePos();
+
             paddleOpponent.UpdatePos();
 
             // Поменять на BOOL IsServer

@@ -40,10 +40,10 @@ namespace Pong
         public virtual string Receive()
         {
             if (socketListner == null) return null;
-            socketListner.ReceiveBufferSize = 1;
+            socketListner.ReceiveBufferSize = 8;
             try
             {
-                byte[] buffer = new byte[4];
+                byte[] buffer = new byte[8];
                 int countBytes = 0;
                 receiveData.Clear();
                 do
@@ -64,7 +64,7 @@ namespace Pong
             }
         }
 
-        public virtual async void Send(string message)
+        public virtual void Send(string message)
         {
             //while (isActive && isConnect)
             if (socketListner == null) return;

@@ -101,6 +101,7 @@
     <Compile Include="GameObjects\Paddle.cs" />
     <Compile Include="ServerTcpSocket.cs" />
     <Compile Include="SettingsManager.cs" />
+    <Compile Include="UnMath.cs" />
     <Compile Include="UnTcpSocket.cs" />
     <Compile Include="Vector2.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
