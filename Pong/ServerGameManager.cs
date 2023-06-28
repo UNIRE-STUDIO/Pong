@@ -15,64 +15,59 @@ using System.Windows.Threading;
 
 namespace Pong
 {
-    class GameManager
+    class ServerGameManager
     {
-        Canvas canvas;
-        Rectangle rectLocal;
-        Rectangle rectOpponent;
-        
-        Paddle paddleLocal;
-        Paddle paddleOpponent;
-        List<Ball> balls = new List<Ball>();
-        List<Ball> activeBalls = new List<Ball>();
+        private Canvas canvas;
+        private Rectangle rectLocal;
+        private Rectangle rectOpponent;
 
-        MainWindow mainWindow;
-        InputManager inputManager;
+        private Paddle paddleLocal;
+        private Paddle paddleOpponent;
+        private List<Ball> balls = new List<Ball>();
+        private List<Ball> activeBalls = new List<Ball>();
+        private MainWindow mainWindow;
 
-        NetworkData networkSendData = new NetworkData();
-        NetworkData networkReceiveData = new NetworkData();
+        private InputManager inputManager;
 
-        public bool isHost = false;
-        public bool isConnect = false;
-        bool isPause = true;
+        private NetworkData networkSendDataTcp = new NetworkData();
+        private NetworkData networkSendDataUdp = new NetworkData();
+
+        private NetworkData networkReceiveDataTcp = new NetworkData();
+        private NetworkData networkReceiveDataUdp = new NetworkData();
+
+        private bool isPause = true;
         public bool isActiveGameLoop = false;
 
-        int leftSideScore = 0;
-        int LeftSideScore
+        private int leftSideScore = 0;
+        private int LeftSideScore
         {
             get { return leftSideScore; }
             set { leftSideScore = value;
-                if (isHost)
+                mainWindow.leftSideScore.Content = leftSideScore.ToString();
+                if (networkSendDataTcp.dataDictionary.TryGetValue((char)Keys.leftSideScore, out _))
                 {
-                    mainWindow.leftSideScore.Content = leftSideScore.ToString();
-                    if (networkSendData.dataDictionary.TryGetValue((char)Keys.leftSideScore, out _))
-                    {
-                        networkSendData.dataDictionary[(char)Keys.leftSideScore] = leftSideScore.ToString();
-                    }
-                    else
-                    {
-                        networkSendData.dataDictionary.Add((char)Keys.leftSideScore, leftSideScore.ToString());
-                    }
+                    networkSendDataTcp.dataDictionary[(char)Keys.leftSideScore] = leftSideScore.ToString();
+                }
+                else
+                {
+                    networkSendDataTcp.dataDictionary.Add((char)Keys.leftSideScore, leftSideScore.ToString());
                 }
             }
         }
-        int rightSideScore = 0;
-        int RightSideScore
+        private int rightSideScore = 0;
+        private int RightSideScore
         {
             get { return rightSideScore; }
             set {
                 rightSideScore = value;
-                if (isHost)
+                mainWindow.rightSideScore.Content = rightSideScore.ToString();
+                if (networkSendDataTcp.dataDictionary.TryGetValue((char)Keys.rightSideScore, out _))
                 {
-                    mainWindow.rightSideScore.Content = rightSideScore.ToString();
-                    if (networkSendData.dataDictionary.TryGetValue((char)Keys.rightSideScore, out _))
-                    {
-                        networkSendData.dataDictionary[(char)Keys.rightSideScore] = rightSideScore.ToString();
-                    }
-                    else
-                    {
-                        networkSendData.dataDictionary.Add((char)Keys.rightSideScore, rightSideScore.ToString());
-                    }
+                    networkSendDataTcp.dataDictionary[(char)Keys.rightSideScore] = rightSideScore.ToString();
+                }
+                else
+                {
+                    networkSendDataTcp.dataDictionary.Add((char)Keys.rightSideScore, rightSideScore.ToString());
                 }
             }
         }
@@ -80,12 +75,12 @@ namespace Pong
         public int fps;
 
         // Сервер
-        DispatcherTimer timerAfterGoal;
-        int delayAfterGoal = 1;
-        Random rand = new Random();
+        private DispatcherTimer timerAfterGoal;
+        private int delayAfterGoal = 1;
+        private Random rand = new Random();
 
 
-        public GameManager(MainWindow mainWind, InputManager inputM)
+        public ServerGameManager(MainWindow mainWind, InputManager inputM)
         {
             mainWindow = mainWind;
             inputManager = inputM;
@@ -97,83 +92,63 @@ namespace Pong
             rectOpponent = mainWind.rectOpponent;
         }
 
-        public async Task<int> ReceivePos(UnTcpSocket socket)
+        public async void ReceiveTcp(UnTcpSocket tcpSocket)
         {
-            int errorId = 0;
-            while (socket.isConnect)
+            /*
+            while (tcpSocket.isConnect)
             {
-                networkReceiveData.dataDictionary.Clear();
+                networkReceiveDataTcp.dataDictionary.Clear();
+                networkReceiveDataTcp.Unpacking(tcpSocket.Receive());
+                await Task.Delay(100);
+            }
+            */
+        }
 
-                try
+        // Проверяем соединение с помощью TCP (Временно)
+        public async void ReceiveUdp(UnTcpSocket tcpSocket, IUdpSocket udpSocket)
+        {
+            while (tcpSocket.isConnect)
+            {
+                networkReceiveDataUdp.dataDictionary.Clear();
+                int errorId = 0;
+                string ms = udpSocket.Receive(out errorId);
+                if (errorId == 1) // Клиент закрыл соединение
                 {
-                    networkReceiveData.Unpacking(socket.Receive());
+                    StopGameLoop();
+                    return; 
                 }
-                catch (Exception e)
-                {
-                    if (isHost)
-                    {
-                        return 1; // Даём понять обработчику у кого произошла ошибка
-                    }
-                    else
-                    {
-                        return 2; //
-                    }
-                }
-                
-                if (networkReceiveData.dataDictionary.TryGetValue((char)Keys.paddlePosY, out string y))
+                networkReceiveDataUdp.Unpacking(ms);
+
+                if (networkReceiveDataUdp.dataDictionary.TryGetValue((char)Keys.paddlePosY, out string y))
                 {
                     paddleOpponent.position = new Vector2(paddleOpponent.position.x, int.Parse(y));
                 }
-
-                if (!isHost)
-                {
-                    for (int i = 0; i < balls.Count; i++)
-                    {
-                        if (networkReceiveData.dataDictionary.TryGetValue((char)(i-1), out string vec))
-                        {
-                            Vector2 pos = new Vector2();
-                            pos.SetString(vec);
-                            balls[i].position = pos;
-                            balls[i].visible = true;
-                            activeBalls.Add(balls[i]);
-                        }
-                        else
-                        {
-                            balls[i].visible = false;
-                            activeBalls.Remove(balls[i]);
-                        }
-                    }
-                    
-                    if (networkReceiveData.dataDictionary.TryGetValue((char)Keys.leftSideScore, out string left))
-                    {
-                        LeftSideScore = int.Parse(left);
-                    }
-                    
-                    if (networkReceiveData.dataDictionary.TryGetValue((char)Keys.rightSideScore, out string right))
-                    {
-                        RightSideScore = int.Parse(right);
-                    }
-                }
                 await Task.Delay(10);
             }
-            return errorId;
         }
 
-        public async void SendPos(UnTcpSocket socket)
+        public async void SendTcp(UnTcpSocket tcpSocket, IUdpSocket udpSocket)
         {
-            while (socket.isConnect)
+            while (tcpSocket.isConnect)
             {
-                networkSendData.dataDictionary.Add((char)Keys.paddlePosY, ((int)paddleLocal.position.y).ToString());
-                if (isHost)
+                if (networkSendDataTcp.ToString() != null) tcpSocket.Send(networkSendDataTcp.ToString());
+                networkSendDataTcp.dataDictionary.Clear();
+                await Task.Delay(200);
+            }
+        }
+
+        public async void SendUdp(UnTcpSocket tcpSocket, IUdpSocket udpSocket)
+        {
+            while (tcpSocket.isConnect)
+            {
+                networkSendDataUdp.dataDictionary.Add((char)Keys.paddlePosY, ((int)paddleLocal.position.y).ToString());
+                for (int i = 0; i < balls.Count; i++)
                 {
-                    for (int i = 0; i < balls.Count; i++)
-                    {
-                        if (balls[i].GetVisibility() != Visibility.Visible) continue;
-                        networkSendData.dataDictionary.Add((char)(i+1), balls[i].position.ToString());
-                    }
+                    if (balls[i].GetVisibility() != Visibility.Visible) continue;
+                    networkSendDataUdp.dataDictionary.Add((char)(i + 1), balls[i].position.ToString());
                 }
-                socket.Send(networkSendData.ToString());
-                networkSendData.dataDictionary.Clear();
+                udpSocket.Send(networkSendDataUdp.ToString());
+                networkSendDataUdp.dataDictionary.Clear();
                 await Task.Delay(20);
             }
         }
@@ -184,22 +159,13 @@ namespace Pong
             rectLocal.Visibility = Visibility.Visible;
             rectOpponent.Visibility = Visibility.Visible;
             int xPos = 0;
-            if (isHost)
-            {
-                isPause = true;
-                xPos = (int)canvas.Width - (int)rectLocal.Width;
-                paddleLocal = new Paddle(new Vector2(xPos - 1, canvas.Height/2), rectLocal, canvas);
-                paddleOpponent = new Paddle(new Vector2(1, canvas.Height / 2), rectOpponent, canvas);
+            isPause = true;
+            xPos = (int)canvas.Width - (int)rectLocal.Width;
+            paddleLocal = new Paddle(new Vector2(xPos - 1, canvas.Height / 2), rectLocal, canvas);
+            paddleOpponent = new Paddle(new Vector2(1, canvas.Height / 2), rectOpponent, canvas);
 
-                timerAfterGoal = new DispatcherTimer();
-                timerAfterGoal.Interval = TimeSpan.FromSeconds(delayAfterGoal);
-            }
-            else
-            {
-                xPos = (int)canvas.Width - (int)rectOpponent.Width;
-                paddleLocal = new Paddle(new Vector2(1, canvas.Height / 2), rectLocal, canvas);
-                paddleOpponent = new Paddle(new Vector2(xPos - 1, canvas.Height / 2), rectOpponent, canvas);
-            }
+            timerAfterGoal = new DispatcherTimer();
+            timerAfterGoal.Interval = TimeSpan.FromSeconds(delayAfterGoal);
             if (balls.Count == 0)
             {
                 for (int i = 0; i < 15; i++)
@@ -276,7 +242,7 @@ namespace Pong
             paddleOpponent.UpdatePos();
 
             // Поменять на BOOL IsServer
-            if (isHost && !isPause)
+            if (!isPause)
             {
                 foreach (Ball ball in balls)
                 {
@@ -345,19 +311,6 @@ namespace Pong
                     ball.UpdatePos();
                 }
             }
-
-            if (!isHost)
-            {
-                mainWindow.leftSideScore.Content = LeftSideScore.ToString();
-                mainWindow.rightSideScore.Content = RightSideScore.ToString();
-
-                foreach (Ball ball in balls)
-                {
-                    ball.UpdateVisibility();
-                    if (!ball.visible) continue;
-                    ball.UpdatePos();
-                }
-            }
         }
 
         private void Goal(Ball ball)
@@ -396,11 +349,12 @@ namespace Pong
 
         public void ResetGame()
         {
+            
             LeftSideScore = 0;
             RightSideScore = 0;
             mainWindow.leftSideScore.Content = LeftSideScore.ToString();
             mainWindow.rightSideScore.Content = RightSideScore.ToString();
-
+            
             activeBalls.Clear();
             foreach (Ball ball in balls)
             {

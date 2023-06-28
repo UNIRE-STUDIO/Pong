@@ -26,12 +26,16 @@ namespace Pong
     /// </summary>
     public partial class MainWindow : Window
     {
-        GameManager gameManager;
+        ServerGameManager serverGameManager;
+        ClientGameManager clientGameManager;
         InputManager inputManager;
         SettingsManager settingsManager;
 
-        ServerTcpSocket serverSocket;
-        ClientTcpSocket clientSocket;
+        ServerTcpSocket serverTcpSocket;
+        ServerUdpSocket serverUdpSocket;
+
+        ClientTcpSocket clientTcpSocket;
+        ClientUdpSocket clientUdpSocket;
 
         public MainWindow()
         {
@@ -39,7 +43,8 @@ namespace Pong
             inputManager = new InputManager();
             KeyDown += new KeyEventHandler(inputManager.OnKeyDown);
             KeyUp += new KeyEventHandler(inputManager.OnKeyUp);
-            gameManager = new GameManager(this, inputManager);
+            serverGameManager = new ServerGameManager(this, inputManager);
+            clientGameManager = new ClientGameManager(this, inputManager);
             settingsManager = new SettingsManager(this);
         }
 
@@ -81,32 +86,40 @@ namespace Pong
                 MessageBox.Show("Неверный формат");
                 return;
             }
-            serverSocket = new ServerTcpSocket();
-            serverSocket.eventStart += (hendler, ee) => {
-                gameManager.isHost = true;
-                gameManager.GameSetUp();
+            serverTcpSocket = new ServerTcpSocket();
+            serverUdpSocket = new ServerUdpSocket();
+
+            serverTcpSocket.eventStart += (hendler, ee) => {
+                serverGameManager.GameSetUp();
                 FpsUpdate();
                 serverStatus.Content = "Сервер запущен, ожидаем подключения...";
             };
-            serverSocket.eventErrorStart += (hendler, ee) =>
+
+            serverTcpSocket.eventErrorStart += (hendler, ee) =>
             {
                 MessageBox.Show("Сервер: Не удалось запустить сервер");
             };
-            serverSocket.eventConnect += async (hendler, ee) => {
+            serverTcpSocket.eventConnect += async (hendler, ee) => {
                 serverStatus.Content = "Сервер: Подключение установлено!";
-                await Task.Run(() => gameManager.SendPos(serverSocket));
-                int errorId = await Task.Run(() => gameManager.ReceivePos(serverSocket));
-                if (errorId == 1) DisconnectServer_Click();
+
+                // У сервера прием должен быть первым, так
+                await Task.Run(() => serverGameManager.ReceiveUdp(serverTcpSocket, serverUdpSocket));
+                await Task.Run(() => serverGameManager.SendTcp(serverTcpSocket, serverUdpSocket));
+                await Task.Run(() => serverGameManager.SendUdp(serverTcpSocket, serverUdpSocket));
             };
-            serverSocket.eventErrorReceive += (hendler, ee) => {
+            serverUdpSocket.eventErrorReceive += (hendler, ee) => {
                 MessageBox.Show("Сервер: Не удалось получить данные");
             };
-            serverSocket.eventErrorSend += (hendler, ee) => {
+            serverTcpSocket.eventErrorReceive += (hendler, ee) => {
+                MessageBox.Show("Сервер: Не удалось получить данные");
+            };
+            serverTcpSocket.eventErrorSend += (hendler, ee) => {
                 MessageBox.Show("Сервер: Не удалось отправить данные");
             };
 
-            serverSocket.Start(port);
-
+            serverTcpSocket.Start(port);
+            serverUdpSocket.Start(port);
+            
             createMenu.Visibility = Visibility.Hidden;
             serverMenu.Visibility = Visibility.Visible;
             //serverStatus.Content = $"Адрес подключенного клиента: {client.RemoteEndPoint}";
@@ -143,28 +156,31 @@ namespace Pong
                 MessageBox.Show("Ошибка сохранения: " + ee.Message);
             }
 
-            clientSocket = new ClientTcpSocket();
-            clientSocket.eventStart += (handle, ee) =>
+            clientTcpSocket = new ClientTcpSocket();
+            clientUdpSocket = new ClientUdpSocket();
+            clientTcpSocket.eventStart += (handle, ee) =>
             {
                 clentStatus.Content = "Подключение...";
             };
-            clientSocket.eventConnect += async (handle, ee) =>
+            clientTcpSocket.eventConnect += async (handle, ee) =>
             {
-                gameManager.isHost = false;
                 clentStatus.Content = "Клиент: Подключение установлено";
-                gameManager.GameSetUp();
-                await Task.Run(() => gameManager.SendPos(clientSocket));
-                int errorId = await Task.Run(() => gameManager.ReceivePos(clientSocket));
-                if (errorId == 2) DisconnectClient_Click();
+                clientGameManager.GameSetUp();
+                await Task.Run(() => clientGameManager.SendUdp(clientTcpSocket, clientUdpSocket));
+                await Task.Run(() => clientGameManager.ReceiveUdp(clientTcpSocket, clientUdpSocket));
+                await Task.Run(() => clientGameManager.ReceiveTcp(clientTcpSocket, clientUdpSocket));
+                //if (errorId == 2) DisconnectClient_Click();
             };
-            clientSocket.eventErrorConnect += (ee, args) =>
+            clientTcpSocket.eventErrorConnect += (ee, args) =>
             {
                 // Вывести через делегаты
                 MessageBox.Show("Клиент: Не удалось подключиться... " + ((Exception)ee).Message);
                 DisconnectClient_Click();
             };
+
+            clientUdpSocket.Connect(serverIp, serverPort);
+            clientTcpSocket.Connect(serverIp, serverPort);
             
-            clientSocket.Connect(serverIp, serverPort);
 
             clientMenu.Visibility = Visibility.Visible;
             joinMenu.Visibility = Visibility.Hidden;
@@ -172,47 +188,54 @@ namespace Pong
 
         public void DisconnectClient_Click(object sender = null, RoutedEventArgs e = null)
         {
-            gameManager.StopGameLoop();
-            gameManager.ResetGame();
+            clientGameManager.StopGameLoop();
+            clientGameManager.ResetGame();
             rectLocal.Visibility = Visibility.Hidden;
             rectOpponent.Visibility = Visibility.Hidden;
 
             clientMenu.Visibility = Visibility.Hidden;
-            clientSocket.Disconnect();
+            clientTcpSocket.Disconnect();
+            clientUdpSocket.Disconnect();
             joinMenu.Visibility = Visibility.Visible;
         }
 
         public void DisconnectServer_Click(object sender = null, RoutedEventArgs e = null)
         {
-            gameManager.StopGameLoop();
-            gameManager.ResetGame();
+            serverGameManager.StopGameLoop();
+            serverGameManager.ResetGame();
             rectLocal.Visibility = Visibility.Hidden;
             rectOpponent.Visibility = Visibility.Hidden;
 
             serverMenu.Visibility = Visibility.Hidden;
-            serverSocket.Disconnect();
+            serverTcpSocket.Disconnect();
             createMenu.Visibility = Visibility.Visible;
         }
 
         private void Window_Closed(object sender, EventArgs e)
         {
-            gameManager.StopGameLoop();
-            gameManager.ResetGame();
-            if (serverSocket != null)
+            serverGameManager.StopGameLoop();
+            clientGameManager.StopGameLoop();
+            serverGameManager.ResetGame();
+            clientGameManager.ResetGame();
+            if (serverTcpSocket != null)
             {
-                serverSocket.Disconnect();
+                serverTcpSocket.Disconnect();
+                serverUdpSocket.Disconnect();
             }
-            else if (clientSocket != null)
+            else if (clientTcpSocket != null)
             {
-                clientSocket.Disconnect();
+                clientTcpSocket.Disconnect();
+                clientUdpSocket.Disconnect();
             }
         }
 
+
+        // Убрать внутрь GameManager
         private async void FpsUpdate()
         {
-            while (gameManager.isActiveGameLoop)
+            while (serverGameManager.isActiveGameLoop)
             {
-                labelFps.Content = gameManager.fps.ToString();
+                labelFps.Content = serverGameManager.fps.ToString();
                 await Task.Delay(300);
             }
         }

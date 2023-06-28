@@ -31,11 +31,6 @@ namespace Pong
         public int receivingDelay = 30;
 
         StringBuilder receiveData = new StringBuilder();
-        StringBuilder sendData = new StringBuilder();
-
-        NetworkData networkSendData = new NetworkData();
-        protected CancellationTokenSource cts = new CancellationTokenSource();
-
 
         public virtual string Receive()
         {

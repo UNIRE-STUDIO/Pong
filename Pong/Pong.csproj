@@ -84,8 +84,10 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="ClientGameManager.cs" />
+    <Compile Include="ClientUdpSocket.cs" />
     <Compile Include="GameObjects\Ball.cs" />
-    <Compile Include="GameManager.cs" />
+    <Compile Include="ServerGameManager.cs" />
     <Compile Include="InputManager.cs" />
     <Compile Include="MathConverter.cs" />
     <Compile Include="MenuManager.cs" />
@@ -100,9 +102,11 @@
   <ItemGroup>
     <Compile Include="GameObjects\Paddle.cs" />
     <Compile Include="ServerTcpSocket.cs" />
+    <Compile Include="ServerUdpSocket.cs" />
     <Compile Include="SettingsManager.cs" />
     <Compile Include="UnMath.cs" />
     <Compile Include="UnTcpSocket.cs" />
+    <Compile Include="IUdpSocket.cs" />
     <Compile Include="Vector2.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
