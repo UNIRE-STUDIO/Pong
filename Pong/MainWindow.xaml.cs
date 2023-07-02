@@ -164,8 +164,6 @@ namespace Pong
                 clientGameManager.ResetGame();
                 clientGameManager.Disconnect();
             }
-            
-
         }
 
 

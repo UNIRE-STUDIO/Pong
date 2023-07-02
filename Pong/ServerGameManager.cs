@@ -237,6 +237,10 @@ namespace Pong
                     balls.Add(newBall);
                 }
             }
+            else
+            {
+                balls[0].position = new Vector2((int)canvas.Width / 2, 50);
+            }
             balls[0].visible = true;
             balls[0].SetVisibility(true); // Включаем видимость лишь первого мячика
             activeBalls.Add(balls[0]);
@@ -260,8 +264,8 @@ namespace Pong
                 DateTimeOffset now = (DateTimeOffset)DateTime.UtcNow;
                 currentTime = now.ToUnixTimeMilliseconds();
                 elapsed = (int)(currentTime - pervious); // Время между предыдущим и текущим кадром
-                pervious = currentTime;             // Сохраняем время текущего кадра
-                lag += elapsed;                     // Суммированное время между кадрами
+                pervious = currentTime;                 // Сохраняем время текущего кадра
+                lag += elapsed;                         // Суммированное время между кадрами
 
                 // Сохраняем лаг, т.е время с предыдущего РАБОЧЕГО кадра (для подсчета ФПС)
                 // Так-как потом мы изменяем glManager.lag
@@ -412,7 +416,6 @@ namespace Pong
 
         public void ResetGame()
         {
-            
             LeftSideScore = 0;
             RightSideScore = 0;
             mainWindow.leftSideScore.Content = LeftSideScore.ToString();
@@ -427,8 +430,7 @@ namespace Pong
 
         private void PauseIsActive()
         {
-            // IS CONNECT
-            isPause = !isPause;
+            if (isActive) isPause = !isPause;
         }
 
         public void StopGameLoop()
@@ -472,6 +474,5 @@ namespace Pong
                 await Task.Delay(300);
             }
         }
-
     }
 }
