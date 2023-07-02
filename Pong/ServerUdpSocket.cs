@@ -60,7 +60,7 @@ namespace Pong
                 eventErrorReceive?.Invoke(this, null);
                 return null;
             }
-            if (receiveData.ToString() == "" || receiveData.ToString() == null) // Клиент закрыл соединение, мы получили пустую строку
+            if (receiveData.ToString() == "") // Клиент закрыл соединение, мы получили пустую строку
             {
                 eventErrorReceive?.Invoke(this, null);
                 return null;

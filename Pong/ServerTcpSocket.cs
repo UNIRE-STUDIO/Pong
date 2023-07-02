@@ -59,5 +59,13 @@ namespace Pong
                 eventErrorStart?.Invoke(this, null);
             }
         }
+
+        public override void Disconnect()
+        {
+            // Нельзя прописывать tcpSocet.Shutdown(), так-как клиент не понимает, что сервер отключился
+            isConnect = false;
+            isActive = false;
+            tcpSocet?.Close();
+        }
     }
 }

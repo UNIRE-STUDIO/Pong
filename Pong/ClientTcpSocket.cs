@@ -50,5 +50,13 @@ namespace Pong
                 eventErrorConnect?.Invoke(e, null);
             }
         }
+
+        public override void Disconnect()
+        {
+            // Нельзя прописывать socketListner.Shutdown(), так-как сервер не понимает, что клиент отключился
+            socketListner?.Close();
+            isConnect = false;
+            isActive = false;
+        }
     }
 }

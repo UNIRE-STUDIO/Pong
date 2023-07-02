@@ -193,8 +193,8 @@ namespace Pong
         public void Disconnect()
         {
             isConnect = false;
-            clientUdpSocket.Disconnect();
             clientTcpSocket.Disconnect();
+            clientUdpSocket.Disconnect();
         }
 
         // GAME LOOOOOOOOOOOP

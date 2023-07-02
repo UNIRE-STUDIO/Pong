@@ -34,7 +34,11 @@ namespace Pong
 
         public virtual string Receive()
         {
-            if (socketListner == null) return null;
+            if (socketListner == null)
+            {
+                eventErrorReceive?.Invoke(this, null);
+                return null;
+            }
             socketListner.ReceiveBufferSize = 8;
             try
             {
@@ -51,40 +55,31 @@ namespace Pong
             }
             catch (Exception)
             {
-                isConnect = false;
-                isActive = false;
                 eventErrorReceive?.Invoke(this, null);
-                Disconnect();
                 return null;
             }
         }
 
         public virtual void Send(string message)
         {
-            //while (isActive && isConnect)
-            if (socketListner == null) return;
+            if (socketListner == null)
+            {
+                eventErrorReceive?.Invoke(this, null);
+                return;
+            }
             try
             {
                 socketListner.Send(Encoding.UTF8.GetBytes(message));
             }
             catch (Exception e)
             {
-                isConnect = false;
-                isActive = false;
                 eventErrorSend?.Invoke(this, null);
-                Disconnect();
             }
         }
 
-        public void Disconnect()
+        public virtual void Disconnect()
         {
-            if (isConnect)
-            {
-                socketListner.Shutdown(SocketShutdown.Both);
-            }
-            isConnect = false;
-            isActive = false;
-            tcpSocet?.Close();
+            
         }
     }
 }

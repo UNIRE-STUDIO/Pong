@@ -171,7 +171,6 @@ namespace Pong
                 string ms = udpSocket.Receive();
                 if (ms == null)
                 {
-                    Trace.WriteLine("EXXITT");
                     return; // Пустая строка, клиент разовал соединение
                 }
                 networkReceiveDataUdp.Unpacking(ms);
