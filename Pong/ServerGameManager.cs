@@ -29,12 +29,16 @@ namespace Pong
 
         private InputManager inputManager;
 
+        private ServerTcpSocket serverTcpSocket;
+        private ServerUdpSocket serverUdpSocket;
+
         private NetworkData networkSendDataTcp = new NetworkData();
         private NetworkData networkSendDataUdp = new NetworkData();
 
         private NetworkData networkReceiveDataTcp = new NetworkData();
         private NetworkData networkReceiveDataUdp = new NetworkData();
 
+        public bool isActive;
         private bool isPause = true;
         public bool isActiveGameLoop = false;
 
@@ -92,6 +96,60 @@ namespace Pong
             rectOpponent = mainWind.rectOpponent;
         }
 
+        public void StartServer(int port)
+        {
+            serverTcpSocket = new ServerTcpSocket();
+            serverUdpSocket = new ServerUdpSocket();
+
+            serverTcpSocket.eventStart += (hendler, ee) => {
+                GameSetUp();
+                FpsUpdate();
+                mainWindow.serverStatus.Content = "Сервер запущен, ожидаем подключения...";
+            };
+
+            serverTcpSocket.eventErrorStart += (hendler, ee) =>
+            {
+                isActive = false;
+                MessageBox.Show("Сервер: Не удалось запустить сервер");
+            };
+            serverTcpSocket.eventConnect += async (hendler, ee) =>
+            {
+                mainWindow.serverStatus.Content = "Сервер: Подключение установлено!";
+                    // У сервера прием должен быть первым, так как мы должны получить адрес клиента (для UDP)
+                    await Task.Run(() =>
+                    {
+                            ReceiveUdp(serverTcpSocket, serverUdpSocket);
+                            SendTcp(serverTcpSocket, serverUdpSocket);
+                            SendUdp(serverTcpSocket, serverUdpSocket);
+                    });
+            };
+            serverUdpSocket.eventErrorReceive += (hendler, ee) => { // Клиент разорвал соединение или что-то ещё
+                mainWindow.Dispatcher.Invoke((Action)delegate
+                {
+                    mainWindow.DisconnectServer_Click();
+                });
+                MessageBox.Show("Сервер UDP: Не удалось получить данные");
+            };
+            serverTcpSocket.eventErrorReceive += (hendler, ee) => {
+                mainWindow.Dispatcher.Invoke((Action)delegate
+                {
+                    mainWindow.DisconnectServer_Click();
+                });
+                MessageBox.Show("Сервер TCP: Не удалось получить данные");
+            };
+            serverTcpSocket.eventErrorSend += (hendler, ee) => {
+                mainWindow.Dispatcher.Invoke((Action)delegate
+                {
+                    mainWindow.DisconnectServer_Click();
+                });
+                MessageBox.Show("Сервер TCP: Не удалось отправить данные");
+            };
+
+            serverTcpSocket.Start(port);
+            serverUdpSocket.Start(port);
+            isActive = true;
+        }
+
         public async void ReceiveTcp(UnTcpSocket tcpSocket)
         {
             /*
@@ -110,12 +168,11 @@ namespace Pong
             while (tcpSocket.isConnect)
             {
                 networkReceiveDataUdp.dataDictionary.Clear();
-                int errorId = 0;
-                string ms = udpSocket.Receive(out errorId);
-                if (errorId == 1) // Клиент закрыл соединение
+                string ms = udpSocket.Receive();
+                if (ms == null)
                 {
-                    StopGameLoop();
-                    return; 
+                    Trace.WriteLine("EXXITT");
+                    return; // Пустая строка, клиент разовал соединение
                 }
                 networkReceiveDataUdp.Unpacking(ms);
 
@@ -151,6 +208,13 @@ namespace Pong
                 networkSendDataUdp.dataDictionary.Clear();
                 await Task.Delay(20);
             }
+        }
+
+        public void Disconnect()
+        {
+            isActive = false;
+            serverTcpSocket.Disconnect();
+            serverUdpSocket.Disconnect();
         }
 
         // GAME LOOOOOOOOOOOP
@@ -399,6 +463,15 @@ namespace Pong
             newDirX = dir.x < 0 ? newDirX : -newDirX;
 
             return new Vector2(newDirX, newDirY);
+        }
+
+        private async void FpsUpdate()
+        {
+            while (isActiveGameLoop)
+            {
+                mainWindow.labelFps.Content = fps.ToString();
+                await Task.Delay(300);
+            }
         }
 
     }

@@ -11,7 +11,7 @@ namespace Pong
 {
     interface IUdpSocket
     {
-        string Receive(out int errorId);
+        string Receive();
 
         void Send(string message);
 

@@ -29,12 +29,16 @@ namespace Pong
 
         private InputManager inputManager;
 
+        private ClientTcpSocket clientTcpSocket;
+        private ClientUdpSocket clientUdpSocket;
+
         private NetworkData networkSendDataTcp = new NetworkData();
         private NetworkData networkSendDataUdp = new NetworkData();
 
         private NetworkData networkReceiveDataTcp = new NetworkData();
         private NetworkData networkReceiveDataUdp = new NetworkData();
 
+        public bool isConnect = false;
         private bool isPause = true;
         public bool isActiveGameLoop = false;
 
@@ -59,12 +63,62 @@ namespace Pong
             rectOpponent = mainWind.rectOpponent;
         }
 
+        public void Connect(string serverIp, int serverPort)
+        {
+            clientTcpSocket = new ClientTcpSocket();
+            clientUdpSocket = new ClientUdpSocket();
+            clientTcpSocket.eventStart += (handle, ee) =>
+            {
+                mainWindow.clentStatus.Content = "Подключение...";
+            };
+            clientTcpSocket.eventConnect += async (handle, ee) =>
+            {
+                mainWindow.clentStatus.Content = "Клиент: Подключение установлено";
+                GameSetUp();
+                await Task.Run(() => {
+                    SendUdp(clientTcpSocket, clientUdpSocket);
+                    ReceiveUdp(clientTcpSocket, clientUdpSocket);
+                    ReceiveTcp(clientTcpSocket, clientUdpSocket);
+                });
+            };
+            clientTcpSocket.eventErrorConnect += (ee, args) =>
+            {
+                // Вывести через делегаты
+                MessageBox.Show("Клиент: Не удалось подключиться... " + ((Exception)ee).Message);
+                mainWindow.Dispatcher.Invoke((Action)delegate
+                {
+                    mainWindow.DisconnectClient_Click();
+                });
+            };
+            clientUdpSocket.eventErrorReceive += (hendler, ee) => { // Клиент разорвал соединение или что-то ещё
+                mainWindow.Dispatcher.Invoke((Action)delegate
+                {
+                    mainWindow.DisconnectClient_Click();
+                });
+                MessageBox.Show("Клиент UDP: Не удалось получить данные");
+            };
+            clientTcpSocket.eventErrorReceive += (hendler, ee) => {
+                mainWindow.Dispatcher.Invoke((Action)delegate
+                {
+                    mainWindow.DisconnectClient_Click();
+                });
+                MessageBox.Show("Клиент TCP: Не удалось получить данные");
+            };
+
+
+            clientUdpSocket.Connect(serverIp, serverPort);
+            clientTcpSocket.Connect(serverIp, serverPort);
+            isConnect = true;
+        }
+
         public async void ReceiveTcp(UnTcpSocket tcpSocket, IUdpSocket udpSocket)
         {
             while (tcpSocket.isConnect)
             {
                 networkReceiveDataTcp.dataDictionary.Clear();
-                networkReceiveDataTcp.Unpacking(tcpSocket.Receive());
+                string ms = tcpSocket.Receive();
+                if (ms == null || ms == "") return;
+                networkReceiveDataTcp.Unpacking(ms);
 
                 if (networkReceiveDataTcp.dataDictionary.TryGetValue((char)Keys.leftSideScore, out string left))
                 {
@@ -83,13 +137,8 @@ namespace Pong
             {
                 networkReceiveDataUdp.dataDictionary.Clear();
 
-                int errorId = 0;
-                string ms = udpSocket.Receive(out errorId);
-                if (errorId == 1)
-                {
-                    StopGameLoop();
-                    return;
-                }
+                string ms = udpSocket.Receive();
+                if (ms == null || ms == "") return;
                 networkReceiveDataUdp.Unpacking(ms);
 
                 if (networkReceiveDataUdp.dataDictionary.TryGetValue((char)Keys.paddlePosY, out string y))
@@ -139,6 +188,13 @@ namespace Pong
                 networkSendDataUdp.dataDictionary.Clear();
                 await Task.Delay(20);
             }
+        }
+
+        public void Disconnect()
+        {
+            isConnect = false;
+            clientUdpSocket.Disconnect();
+            clientTcpSocket.Disconnect();
         }
 
         // GAME LOOOOOOOOOOOP

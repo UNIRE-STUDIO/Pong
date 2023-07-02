@@ -34,7 +34,7 @@ namespace Pong
             serverEndPoint = new IPEndPoint(IPAddress.Parse(ipAddress), port);
             eventStart?.Invoke(this, null);
         }
-        public virtual string Receive(out int errorId)
+        public virtual string Receive()
         {
             try
             {
@@ -49,10 +49,14 @@ namespace Pong
             }
             catch (Exception e)
             {
-                errorId = 1;
+                eventErrorReceive?.Invoke(this, null);
                 return null;
             }
-            errorId = 0;
+            if (receiveData.ToString() == "") // Клиент закрыл соединение, мы получили пустую строку
+            {
+                eventErrorReceive?.Invoke(this, null);
+                return null;
+            }
             return receiveData.ToString();
         }
 

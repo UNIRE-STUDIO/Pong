@@ -31,12 +31,6 @@ namespace Pong
         InputManager inputManager;
         SettingsManager settingsManager;
 
-        ServerTcpSocket serverTcpSocket;
-        ServerUdpSocket serverUdpSocket;
-
-        ClientTcpSocket clientTcpSocket;
-        ClientUdpSocket clientUdpSocket;
-
         public MainWindow()
         {
             InitializeComponent();
@@ -86,40 +80,9 @@ namespace Pong
                 MessageBox.Show("Неверный формат");
                 return;
             }
-            serverTcpSocket = new ServerTcpSocket();
-            serverUdpSocket = new ServerUdpSocket();
 
-            serverTcpSocket.eventStart += (hendler, ee) => {
-                serverGameManager.GameSetUp();
-                FpsUpdate();
-                serverStatus.Content = "Сервер запущен, ожидаем подключения...";
-            };
+            serverGameManager.StartServer(port);
 
-            serverTcpSocket.eventErrorStart += (hendler, ee) =>
-            {
-                MessageBox.Show("Сервер: Не удалось запустить сервер");
-            };
-            serverTcpSocket.eventConnect += async (hendler, ee) => {
-                serverStatus.Content = "Сервер: Подключение установлено!";
-
-                // У сервера прием должен быть первым, так
-                await Task.Run(() => serverGameManager.ReceiveUdp(serverTcpSocket, serverUdpSocket));
-                await Task.Run(() => serverGameManager.SendTcp(serverTcpSocket, serverUdpSocket));
-                await Task.Run(() => serverGameManager.SendUdp(serverTcpSocket, serverUdpSocket));
-            };
-            serverUdpSocket.eventErrorReceive += (hendler, ee) => {
-                MessageBox.Show("Сервер: Не удалось получить данные");
-            };
-            serverTcpSocket.eventErrorReceive += (hendler, ee) => {
-                MessageBox.Show("Сервер: Не удалось получить данные");
-            };
-            serverTcpSocket.eventErrorSend += (hendler, ee) => {
-                MessageBox.Show("Сервер: Не удалось отправить данные");
-            };
-
-            serverTcpSocket.Start(port);
-            serverUdpSocket.Start(port);
-            
             createMenu.Visibility = Visibility.Hidden;
             serverMenu.Visibility = Visibility.Visible;
             //serverStatus.Content = $"Адрес подключенного клиента: {client.RemoteEndPoint}";
@@ -156,31 +119,7 @@ namespace Pong
                 MessageBox.Show("Ошибка сохранения: " + ee.Message);
             }
 
-            clientTcpSocket = new ClientTcpSocket();
-            clientUdpSocket = new ClientUdpSocket();
-            clientTcpSocket.eventStart += (handle, ee) =>
-            {
-                clentStatus.Content = "Подключение...";
-            };
-            clientTcpSocket.eventConnect += async (handle, ee) =>
-            {
-                clentStatus.Content = "Клиент: Подключение установлено";
-                clientGameManager.GameSetUp();
-                await Task.Run(() => clientGameManager.SendUdp(clientTcpSocket, clientUdpSocket));
-                await Task.Run(() => clientGameManager.ReceiveUdp(clientTcpSocket, clientUdpSocket));
-                await Task.Run(() => clientGameManager.ReceiveTcp(clientTcpSocket, clientUdpSocket));
-                //if (errorId == 2) DisconnectClient_Click();
-            };
-            clientTcpSocket.eventErrorConnect += (ee, args) =>
-            {
-                // Вывести через делегаты
-                MessageBox.Show("Клиент: Не удалось подключиться... " + ((Exception)ee).Message);
-                DisconnectClient_Click();
-            };
-
-            clientUdpSocket.Connect(serverIp, serverPort);
-            clientTcpSocket.Connect(serverIp, serverPort);
-            
+            clientGameManager.Connect(serverIp, serverPort);
 
             clientMenu.Visibility = Visibility.Visible;
             joinMenu.Visibility = Visibility.Hidden;
@@ -194,8 +133,7 @@ namespace Pong
             rectOpponent.Visibility = Visibility.Hidden;
 
             clientMenu.Visibility = Visibility.Hidden;
-            clientTcpSocket.Disconnect();
-            clientUdpSocket.Disconnect();
+            clientGameManager.Disconnect();
             joinMenu.Visibility = Visibility.Visible;
         }
 
@@ -207,26 +145,27 @@ namespace Pong
             rectOpponent.Visibility = Visibility.Hidden;
 
             serverMenu.Visibility = Visibility.Hidden;
-            serverTcpSocket.Disconnect();
+            serverGameManager.Disconnect();
             createMenu.Visibility = Visibility.Visible;
         }
 
         private void Window_Closed(object sender, EventArgs e)
         {
-            serverGameManager.StopGameLoop();
-            clientGameManager.StopGameLoop();
-            serverGameManager.ResetGame();
-            clientGameManager.ResetGame();
-            if (serverTcpSocket != null)
+            if (serverGameManager.isActive)
             {
-                serverTcpSocket.Disconnect();
-                serverUdpSocket.Disconnect();
+                serverGameManager.StopGameLoop();
+                serverGameManager.ResetGame();
+                serverGameManager.Disconnect();
             }
-            else if (clientTcpSocket != null)
+            
+            if (clientGameManager.isConnect)
             {
-                clientTcpSocket.Disconnect();
-                clientUdpSocket.Disconnect();
+                clientGameManager.StopGameLoop();
+                clientGameManager.ResetGame();
+                clientGameManager.Disconnect();
             }
+            
+
         }
 
 

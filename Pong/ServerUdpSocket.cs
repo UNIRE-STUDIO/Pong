@@ -41,7 +41,7 @@ namespace Pong
             eventStart?.Invoke(this, null);
         }
 
-        public virtual string Receive(out int errorId)
+        public virtual string Receive()
         {
             try
             {
@@ -58,14 +58,13 @@ namespace Pong
             catch (Exception e)
             {
                 eventErrorReceive?.Invoke(this, null);
-            }
-            if (receiveData.ToString() == "") // Клиент закрыл соединение, мы получили пустую строку
-            {
-                eventErrorReceive?.Invoke(this, null);
-                errorId = 1;
                 return null;
             }
-            errorId = 0;
+            if (receiveData.ToString() == "" || receiveData.ToString() == null) // Клиент закрыл соединение, мы получили пустую строку
+            {
+                eventErrorReceive?.Invoke(this, null);
+                return null;
+            }
             return receiveData.ToString();
         }
 
