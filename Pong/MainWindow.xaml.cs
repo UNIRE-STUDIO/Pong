@@ -166,17 +166,6 @@ namespace Pong
             }
         }
 
-
-        // Убрать внутрь GameManager
-        private async void FpsUpdate()
-        {
-            while (serverGameManager.isActiveGameLoop)
-            {
-                labelFps.Content = serverGameManager.fps.ToString();
-                await Task.Delay(300);
-            }
-        }
-
         private void FirstSize_Click(object sender, RoutedEventArgs e) => settingsManager.ChangeSizeWindow(0);
         private void SecondSize_Click(object sender, RoutedEventArgs e) => settingsManager.ChangeSizeWindow(1);
     }

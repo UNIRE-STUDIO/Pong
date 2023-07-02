@@ -143,7 +143,7 @@ namespace Pong
 
                 if (networkReceiveDataUdp.dataDictionary.TryGetValue((char)Keys.paddlePosY, out string y))
                 {
-                    paddleOpponent.position = new Vector2(paddleOpponent.position.x, int.Parse(y));
+                    paddleOpponent.newPositon = new Vector2(paddleOpponent.position.x, int.Parse(y));
                 }
 
                 for (int i = 0; i < balls.Count; i++)
@@ -153,6 +153,7 @@ namespace Pong
                         Vector2 pos = new Vector2();
                         pos.SetString(vec);
                         balls[i].position = pos;
+                        balls[i].newPositon = pos;
                         balls[i].visible = true;
                         activeBalls.Add(balls[i]);
                     }
@@ -206,7 +207,7 @@ namespace Pong
             xPos = (int)canvas.Width - (int)rectOpponent.Width;
             paddleLocal = new Paddle(new Vector2(1, canvas.Height / 2), rectLocal, canvas);
             paddleOpponent = new Paddle(new Vector2(xPos - 1, canvas.Height / 2), rectOpponent, canvas);
-           
+            paddleOpponent.newPositon = paddleOpponent.position;
             if (balls.Count == 0)
             {
                 for (int i = 0; i < 15; i++)
@@ -280,7 +281,7 @@ namespace Pong
             paddleLocal.Calculation();
             paddleLocal.UpdatePos();
 
-            paddleOpponent.UpdatePos();
+            paddleOpponent.UpdatePosLerp();
             mainWindow.leftSideScore.Content = leftSideScore.ToString();
             mainWindow.rightSideScore.Content = rightSideScore.ToString();
 
@@ -288,7 +289,7 @@ namespace Pong
             {
                 ball.UpdateVisibility();
                 if (!ball.visible) continue;
-                ball.UpdatePos();
+                ball.UpdatePosLerp();
             }
             
         }

@@ -13,6 +13,7 @@ namespace Pong
     class GameObject
     {
         public Vector2 position = new Vector2(0, 0);
+        public Vector2 newPositon = new Vector2(0, 0);
         public bool visible = false;
 
         protected Shape renderShape;
@@ -22,6 +23,7 @@ namespace Pong
         public GameObject(Vector2 pos, Shape shape, Canvas cnvs)
         {
             position = pos;
+            newPositon = position;
             canvas = cnvs;
             renderShape = shape;
         }
@@ -32,6 +34,14 @@ namespace Pong
             Canvas.SetLeft(renderShape, position.x);
             Canvas.SetTop(renderShape, position.y);
         }
+        public virtual void UpdatePosLerp()
+        {
+            position.x = UnMath.Lerp(position.x, newPositon.x, 0.5d);
+            position.y = UnMath.Lerp(position.y, newPositon.y, 0.5d);
+            Canvas.SetLeft(renderShape, position.x);
+            Canvas.SetTop(renderShape, position.y);
+        }
+
         public virtual void UpdateVisibility()
         {
             renderShape.Visibility = visible ? Visibility.Visible : Visibility.Hidden;

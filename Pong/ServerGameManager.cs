@@ -177,7 +177,7 @@ namespace Pong
 
                 if (networkReceiveDataUdp.dataDictionary.TryGetValue((char)Keys.paddlePosY, out string y))
                 {
-                    paddleOpponent.position = new Vector2(paddleOpponent.position.x, int.Parse(y));
+                    paddleOpponent.newPositon = new Vector2(paddleOpponent.position.x, int.Parse(y));
                 }
                 await Task.Delay(10);
             }
@@ -226,6 +226,7 @@ namespace Pong
             xPos = (int)canvas.Width - (int)rectLocal.Width;
             paddleLocal = new Paddle(new Vector2(xPos - 1, canvas.Height / 2), rectLocal, canvas);
             paddleOpponent = new Paddle(new Vector2(1, canvas.Height / 2), rectOpponent, canvas);
+            paddleOpponent.newPositon = paddleOpponent.position;
 
             timerAfterGoal = new DispatcherTimer();
             timerAfterGoal.Interval = TimeSpan.FromSeconds(delayAfterGoal);
@@ -306,7 +307,7 @@ namespace Pong
             paddleLocal.Calculation();
             paddleLocal.UpdatePos();
 
-            paddleOpponent.UpdatePos();
+            paddleOpponent.UpdatePosLerp();
 
             // Поменять на BOOL IsServer
             if (!isPause)
@@ -331,7 +332,6 @@ namespace Pong
                         ball.position.x = rectLocal.Width;
                         Vector2 oldDir = ball.direction;
                         ball.direction = NewReflectionVector(ball.direction);
-                        Trace.WriteLine($"x{ball.direction.x},y{ball.direction.y}");
 
                         Ball newBall = GetDisabledBall();
                         newBall.position = ball.position;
@@ -348,7 +348,6 @@ namespace Pong
                         ball.position.x = canvas.Width - rectLocal.Width - ball.widthBall;
                         Vector2 oldDir = ball.direction;
                         ball.direction = NewReflectionVector(ball.direction);
-                        Trace.WriteLine($"x{ball.direction.x},y{ball.direction.y}");
 
                         Ball newBall = GetDisabledBall();
                         newBall.position = ball.position;
