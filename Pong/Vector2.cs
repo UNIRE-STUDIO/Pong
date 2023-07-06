@@ -26,7 +26,6 @@ namespace Pong
         public void SetString(string str)
         {
             StringBuilder strBuilder = new StringBuilder();
-            Trace.WriteLine(str);
             for (int i = 1; i < str.Length; i++)
             {
                 if (i == str.Length - 1)
@@ -44,7 +43,6 @@ namespace Pong
                     strBuilder.Append(str[i]);
                 }
             }
-            Trace.WriteLine($"(x:{x} y:{y})");
         }
     }
 }
